@@ -1,7 +1,7 @@
 @echo off
 
 REM 设置变量
-set COMMIT_MESSAGE= 修改md文件
+set COMMIT_MESSAGE= change md file,create directory prompt and upload cjx's files
 
 REM 添加文件到暂存区
 echo Adding files to staging area...
