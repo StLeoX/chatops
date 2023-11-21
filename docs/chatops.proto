@@ -1,0 +1,87 @@
+syntax = "proto3";
+package chatops;
+
+import "google/protobuf/wrappers.proto";
+
+message PingRsp {
+  bool available = 1;
+  optional string msg = 2;
+}
+
+message StopRsp {
+  bool stopped = 1;
+  optional string msg = 2;
+}
+
+enum kUpdateKey {
+  UNKNOWN = 0;
+  SUCCESS = 1;
+  UNAVAILABLE = 2;
+}
+
+message UpdateKeyReq {
+  string uid = 1;
+  string api_key = 2;
+}
+message UpdateKeyRsp {
+  kUpdateKey code = 1;
+  optional string msg = 2;
+}
+
+message FaultContext {
+  uint32 fid = 1;  // fault id
+  // todo
+}
+
+message FaultDescReq {
+  uint32 fid = 1;
+}
+message FaultDescRsp {
+  uint32 id = 1;
+  uint32 fid = 2;
+  string content = 3;
+}
+
+message ExpectationReq {
+  uint32 fid = 1;
+}
+message ExpectationRsp {
+  uint32 id = 1;
+  // todo(结构化描述数据)
+}
+
+message FaultReportReq{
+  uint32 fid = 1;
+}
+message FaultReportRsp {
+  uint32 id = 1;
+  uint32 fid = 2;
+  string content = 3;
+}
+
+message AdviceReq {
+  uint32 fid = 1;
+  uint32 eid = 2;  // expectation id
+  uint32 rid = 3;  // report id
+}
+message AdviceRsp{
+  uint32 id = 1;
+  string content = 2;
+}
+
+service Chatops {
+  rpc GptPing(google.protobuf.NullValue) returns (PingRsp) {}
+
+  rpc GptUpdateKey(UpdateKeyReq) returns (UpdateKeyRsp) {}
+
+  rpc GptStop(google.protobuf.NullValue) returns(StopRsp) {}
+
+  rpc GenFaultDesc(FaultDescReq) returns (FaultDescRsp) {}
+
+  rpc GenExpectation(ExpectationReq) returns (ExpectationRsp) {}
+
+  rpc GenFaultReport(FaultReportReq) returns (FaultReportRsp) {}
+
+  rpc GenAdvice(AdviceReq) returns (AdviceRsp) {}
+
+}
