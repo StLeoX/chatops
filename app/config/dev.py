@@ -4,7 +4,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-ENV_FILE_PATH = BASE_DIR / ".env.dev"
+ENV_FILE_PATH = BASE_DIR / ".dev.env"
 load_dotenv(ENV_FILE_PATH)
 
 # Flask
@@ -41,7 +41,7 @@ class DevConfig:
     # Caching
     CACHE_ENABLED = CACHE_ENABLED
     CACHE_TYPE = CACHE_TYPE
-    CACHE_KEY_PREFIX = "flask_cache_"
+    CACHE_KEY_PREFIX = "chatops_cache_"
     CACHE_EXEMPTED_ROUTES = CACHE_EXEMPTED_ROUTES
     if CACHE_TYPE != "SimpleCache" and CACHE_STORAGE_URL:
         CACHE_REDIS_URL = CACHE_STORAGE_URL
