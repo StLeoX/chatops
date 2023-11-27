@@ -139,3 +139,17 @@ cython_debug/
 
 **.bkp
 .idea/
+.env*
+**/__pycache___
+.pytest_cache
+**/.vscode
+**/node_modules
+**/venv
+**/__pycache__
+**/.next
+**/.idea
+**/.env
+**/logs
+**/database
+**/*.db
+**/instance
