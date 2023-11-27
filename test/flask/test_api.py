@@ -58,8 +58,8 @@ def test_api_forbidden(app):
         assert response.status_code == 403
         assert response.json["status"] == "error"
         assert (
-            response.json["message"]
-            == "You don't have the permission to access the requested resource"
+                response.json["message"]
+                == "You don't have the permission to access the requested resource"
         )
 
 

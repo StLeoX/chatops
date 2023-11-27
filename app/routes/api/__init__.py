@@ -15,8 +15,10 @@ from app.utils.cache import get_cached_response, set_cached_response
 
 # Blueprint modules
 from .tests import tests_bp
+from .chat import chat_bp
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
+
 limiter.exempt(
     api_bp,
     flags=ExemptionScope.DEFAULT
@@ -56,3 +58,4 @@ def after_request(response: Response):
 
 
 api_bp.register_blueprint(tests_bp)
+api_bp.register_blueprint(chat_bp)
