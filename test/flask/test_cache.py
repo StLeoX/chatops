@@ -14,7 +14,7 @@ def app():
 
 
 def test_api_cache(app):
-    request_url = "/api/tests/cached"
+    request_url = "/v1/tests/cached"
     with app.test_client() as client:
         response = client.get(request_url)
         assert response.status_code == 200

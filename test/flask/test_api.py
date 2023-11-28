@@ -13,7 +13,7 @@ def app():
 
 def test_api_hello(app):
     with app.test_client() as client:
-        response = client.get("/api/tests/hello")
+        response = client.get("/v1/tests/hello")
         assert response.status_code == 200
         assert response.json["status"] == "success"
         assert response.json["message"] == "Hello World!!"
@@ -21,7 +21,7 @@ def test_api_hello(app):
 
 def test_api_success(app):
     with app.test_client() as client:
-        response = client.get("/api/tests/success")
+        response = client.get("/v1/tests/success")
         assert response.status_code == 200
         assert response.json["status"] == "success"
         assert response.json["data"]["title"] == "riad-azz"
@@ -30,8 +30,8 @@ def test_api_success(app):
 
 def test_api_ratelimit(app):
     with app.test_client() as client:
-        success_response = client.get("/api/tests/ratelimit")
-        limited_response = client.get("/api/tests/ratelimit")
+        success_response = client.get("/v1/tests/ratelimit")
+        limited_response = client.get("/v1/tests/ratelimit")
 
     assert success_response.status_code == 200
     assert success_response.json["status"] == "success"
@@ -46,7 +46,7 @@ def test_api_ratelimit(app):
 
 def test_api_bad_request(app):
     with app.test_client() as client:
-        response = client.get("/api/tests/bad-request")
+        response = client.get("/v1/tests/bad-request")
         assert response.status_code == 400
         assert response.json["status"] == "error"
         assert response.json["message"] == "Bad Request"
@@ -54,7 +54,7 @@ def test_api_bad_request(app):
 
 def test_api_forbidden(app):
     with app.test_client() as client:
-        response = client.get("/api/tests/forbidden")
+        response = client.get("/v1/tests/forbidden")
         assert response.status_code == 403
         assert response.json["status"] == "error"
         assert (
@@ -65,7 +65,7 @@ def test_api_forbidden(app):
 
 def test_api_internal_server_error(app):
     with app.test_client() as client:
-        response = client.get("/api/tests/internal-server-error")
+        response = client.get("/v1/tests/internal-server-error")
         assert response.status_code == 500
         assert response.json["status"] == "error"
         assert response.json["message"] == "Internal Server Error"
@@ -73,7 +73,7 @@ def test_api_internal_server_error(app):
 
 def test_api_unknown_exception(app):
     with app.test_client() as client:
-        response = client.get("/api/tests/unknown-exception")
+        response = client.get("/v1/tests/unknown-exception")
         assert response.status_code == 500
         assert response.json["status"] == "error"
         assert response.json["message"] == "Internal Server Error"

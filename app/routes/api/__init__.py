@@ -17,7 +17,7 @@ from app.utils.cache import get_cached_response, set_cached_response
 from .tests import tests_bp
 from .chat import chat_bp
 
-api_bp = Blueprint("api", __name__, url_prefix="/api")
+api_bp = Blueprint("api", __name__, url_prefix="/v1")
 
 limiter.exempt(
     api_bp,
