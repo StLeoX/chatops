@@ -13,10 +13,7 @@ def create_app(debug: bool = False):
 
     # Create the Flask application instance
     app = Flask(
-        __name__,
-        template_folder="../templates",
-        static_folder="../static",
-        static_url_path="/",
+        __name__
     )
 
     # Set current_app context
@@ -36,11 +33,11 @@ def create_app(debug: bool = False):
     # setup_flask_logger()
 
     # Initialize extensions
-    from app.extensions import db, cors, csrf, cache, bcrypt, limiter, login_manager
+    from app.extensions import db, cors, cache, bcrypt, limiter, login_manager
 
     db.init_app(app)
     cors.init_app(app)
-    csrf.init_app(app)
+
     cache.init_app(app)
     bcrypt.init_app(app)
     limiter.init_app(app)
