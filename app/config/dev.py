@@ -18,7 +18,7 @@ CACHE_TYPE = os.environ.get("CACHE_TYPE", "SimpleCache")
 CACHE_ENABLED = os.environ.get("CACHE_ENABLED", "False") == "True"
 CACHE_STORAGE_URL = os.environ.get("CACHE_STORAGE_URL", None)
 CACHE_EXEMPTED_ROUTES = [
-    "/api/auth/",
+    "/v1/auth/",
 ]
 
 

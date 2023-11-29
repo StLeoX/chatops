@@ -20,7 +20,7 @@ def make_api_cache_key(request: Request):
         str: The cache key for the API.
     """
     full_url = request.url
-    api_cache_url = full_url.split("/api/")[-1]
+    api_cache_url = full_url.split("/v1/")[-1]
     return api_cache_url
 
 

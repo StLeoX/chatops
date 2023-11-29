@@ -14,6 +14,6 @@ def app():
 
 def test_cors_enabled(app):
     with app.test_client() as client:
-        response = client.get("/api/tests/success")
+        response = client.get("/v1/tests/success")
         assert response.status_code == 200
         assert response.headers["Access-Control-Allow-Origin"] is not None
