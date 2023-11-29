@@ -19,5 +19,3 @@ gunicorn
 python-dotenv
 email-validator
 Werkzeug
-
-Flask-WTF
