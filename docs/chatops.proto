@@ -1,13 +1,17 @@
 syntax = "proto3";
 package chatops;
 
-import "google/protobuf/wrappers.proto";
+message PingReq {
 
+}
 message PingRsp {
   bool available = 1;
   optional string msg = 2;
 }
 
+message StopReq {
+
+}
 message StopRsp {
   bool stopped = 1;
   optional string msg = 2;
@@ -70,11 +74,11 @@ message AdviceRsp{
 }
 
 service Chatops {
-  rpc GptPing(google.protobuf.NullValue) returns (PingRsp) {}
+  rpc GptPing(PingReq) returns (PingRsp) {}
 
   rpc GptUpdateKey(UpdateKeyReq) returns (UpdateKeyRsp) {}
 
-  rpc GptStop(google.protobuf.NullValue) returns(StopRsp) {}
+  rpc GptStop(StopReq) returns(StopRsp) {}
 
   rpc GenFaultDesc(FaultDescReq) returns (FaultDescRsp) {}
 

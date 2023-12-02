@@ -1,5 +1,5 @@
 # Base image for Python Flask
-FROM python:3.11-slim
+FROM python:3.10-slim
 
 # Python environment variables
 ENV PIP_DISABLE_PIP_VERSION_CHECK 1
@@ -18,7 +18,7 @@ RUN pip install -r requirements.txt
 # Copy the Flask app file
 COPY . .
 
-EXPOSE 5000
+EXPOSE 9999
 
 # Run the Flask app
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "server:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:9999", "server:app"]

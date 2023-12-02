@@ -1,3 +1,5 @@
+# python 3.10
+
 Flask
 Flask-Cors
 Flask-Login
@@ -17,5 +19,3 @@ gunicorn
 python-dotenv
 email-validator
 Werkzeug
-
-Flask-WTF
