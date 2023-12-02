@@ -2,39 +2,40 @@ import openai
 import json
 import os
 
-
 os.environ["HTTP_PROXY"] = "http://127.0.0.1:7890"
 os.environ["HTTPS_PROXY"] = "http://127.0.0.1:7890"
 
 
 # 获取 api
-def get_api_key():
+def get_api_key(path):
     # 可以自己根据自己实际情况实现
     # 以我为例子，我是存在一个 openai_key 文件里，json 格式
     '''
     {"api": "你的 api keys"}
     '''
-    openai_key_file = 'openai_key.json'
+    openai_key_file = path
     with open(openai_key_file, 'r', encoding='utf-8') as f:
         openai_key = json.loads(f.read())
     return openai_key['api']
 
 
-openai.api_key = get_api_key()
+openai.api_key = "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"
 
 
-def gpt_dialogue(prompt, question):
+def gpt_create_messages(prompt, message, response_few_shot_text=''):
+    return [
+        {"role": "system", "content": prompt},
+        {"role": "user", "content": "run"},
+        {"role": "assistant", "content": response_few_shot_text},
+        {"role": "user", "content": message}
+    ]
+
+
+def gpt_dialogue(prompt, question, example):
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo-1106",
-        response_format={ "type": "json_object" },
-        messages=[
-            {'role': 'system', 'content': prompt},
-            {'role': 'user', 'content': question}
-        ],
-        temperature=0.0,
+        messages=gpt_create_messages(prompt, question, example),
+        temperature=0.5
     )
-
     print(response)
-
     return response['choices'][0]['message']['content']
-
