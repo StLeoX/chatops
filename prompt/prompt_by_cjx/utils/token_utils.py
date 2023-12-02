@@ -10,7 +10,12 @@
 
 import tiktoken
 
-def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301"):
+from prompt.prompt_by_cjx.utils.chatWithGPT import gpt_create_messages
+
+
+def num_tokens_from_messages(prompt, question, model="gpt-3.5-turbo-0301"):
+    messages = gpt_create_messages(prompt, question)
+
     """Returns the number of tokens used by a list of messages."""
     try:
         encoding = tiktoken.encoding_for_model(model)
@@ -30,7 +35,8 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301"):
         tokens_per_message = 3
         tokens_per_name = 1
     else:
-        raise NotImplementedError(f"""num_tokens_from_messages() is not implemented for model {model}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens.""")
+        raise NotImplementedError(
+            f"""num_tokens_from_messages() is not implemented for model {model}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens.""")
     num_tokens = 0
     for message in messages:
         num_tokens += tokens_per_message
@@ -40,5 +46,3 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301"):
                 num_tokens += tokens_per_name
     num_tokens += 3  # every reply is primed with <|start|>assistant<|message|>
     return num_tokens
-
-
