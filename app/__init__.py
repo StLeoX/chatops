@@ -46,8 +46,6 @@ def create_app(debug: bool = False):
     # Import all models and Create database tables
     from app import models
 
-    db.create_all()
-
     # Register blueprints or routes
     from app.routes import api_bp, pages_bp, auth_bp
 
