@@ -15,6 +15,8 @@ import logging
 from app.models.auth import User
 from app.extensions import db, bcrypt
 
+from app.utils.auth import validate_api_key
+
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -26,35 +28,32 @@ def before_request():
 def login():
     data = request.json
     print(data)
-    user = User.query.filter_by(email=data.get('email')).first()
+    if not data.get('name'):
+        return jsonify({"message": "用户名不能为空"}), 400
+    
+    if not validate_api_key(data.get('apt_key')):
+        return jsonify({"message": "API key 不合法"}), 401
 
-    if user and check_password_hash(user.password, data.get('password')):
-        login_user(user)
-        return jsonify({"message": "登录成功"})
-    else:
-        return jsonify({"message": "无效的邮箱或密码"}), 401
+    try:
+        user = User(data.get('name'), data.get('api_key'))
+    except ValueError as e:
+        print(str(e)) # Username already exists
+        return jsonify({"message": "用户名已存在"}), 409
+    
+    login_user(user)
+    
+    return jsonify({"message": "登录成功"}), 200
 
-
-@auth_bp.route('/register', methods=['POST'])
-def register():
-    data = request.json
-    user = User.query.filter_by(email=data.get('email')).first()
-    if user:
-        return jsonify({"message": "邮箱已被注册"}), 409
-
-    new_user = User(
-        name=data.get('name'),
-        email=data.get('email'),
-        password=generate_password_hash(data.get('password')),
-        created_date=datetime.utcnow()
-    )
-    db.session.add(new_user)
-    db.session.commit()
-
-    return jsonify({"message": "注册成功"})
 
 @auth_bp.route("/logout", methods=["GET", "POST"])
-@login_required
 def logout():
+    data = request.json
+    current_user = User()
+    current_user.load(data.get('name'))
+    if not current_user.is_authenticated:
+        # 处理未登录的情况，例如返回特定的响应
+        return jsonify({"message": "未登录"}), 401
+
     logout_user()
+    current_user.delete()
     return jsonify({"message": "用户已注销"})

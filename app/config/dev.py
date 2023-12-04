@@ -20,7 +20,9 @@ CACHE_STORAGE_URL = os.environ.get("CACHE_STORAGE_URL", None)
 CACHE_EXEMPTED_ROUTES = [
     "/v1/auth/",
 ]
-
+# Redis
+# TODO: Set password
+REDIS_URL = "redis://:@localhost:6379/0"
 
 class DevConfig:
     # Flask
@@ -32,6 +34,7 @@ class DevConfig:
     SECRET_KEY = SECRET_KEY
     # Database
     SQLALCHEMY_DATABASE_URI = DATABASE_URI
+    REDIS_URL = REDIS_URL
     # Ratelimit
     RATELIMIT_ENABLED = RATELIMIT_ENABLED
     RATELIMIT_STORAGE_URI = RATELIMIT_STORAGE_URI

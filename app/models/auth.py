@@ -5,18 +5,49 @@ from flask_login import UserMixin
 from datetime import datetime
 
 # Local modules
-from app.extensions import db
-from app.utils.models import generate_uuid
+from app.extensions.db import db
+    
 
+class User(UserMixin):
+    def __init__(self, name=None, key=None):
+        self.name = name
+        self.key = key
+        self.redis = db
 
-class User(db.Model, UserMixin):
-    id = db.Column(
-        db.String, primary_key=True, default=generate_uuid, unique=True, nullable=False
-    )
-    name = db.Column(db.String(80), nullable=False)
-    email = db.Column(db.String(255), unique=True, nullable=False)
-    password = db.Column(db.String, nullable=False)
-    created_date = db.Column(db.DateTime, default=datetime.utcnow)
+        if name and key:
+            self.save(self.name, self.key)
+
+    def username_exists(self):
+        return self.redis.hexists('users', self.name)
+
+    def save(self, name=None, key=None):
+        # TODO: Save id without name?
+        if self.username_exists():
+            raise ValueError("Username already exists")
+        if name and key:
+            self.redis.hset('users', str(name), str(key))
+
+    def get(self):
+        key = self.redis.hget('users', self.name)
+        if key:
+            return key
+        return None
+    
+    def load(self, name):
+        self.name = name
+        self.key = self.get()
+    
+    def is_authenticated(self):
+        if self.redis.hexists('users', self.name):
+            return True
+        return False
+
+    def delete(self):
+        self.redis.hdel('users', self.name)
+
+    def get_id(self):
+        return self.name
 
     def __repr__(self):
-        return f"<User {self.name}>"
+        return f"<User {self.id, self.name}>"
+
