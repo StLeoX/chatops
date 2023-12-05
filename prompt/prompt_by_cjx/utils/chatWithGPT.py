@@ -22,20 +22,35 @@ def get_api_key(path):
 openai.api_key = "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"
 
 
-def gpt_create_messages(prompt, message, response_few_shot_text=''):
+
+def gpt_create_messages_fault_desc(prompt, message, response_few_shot_text=''):
     return [
         {"role": "system", "content": prompt},
         {"role": "user", "content": "run"},
         {"role": "assistant", "content": response_few_shot_text},
         {"role": "user", "content": message}
     ]
+def gpt_create_messages_suggestion(prompt):
+    return [
+        {"role": "user", "content": prompt},
+    ]
+
 
 
 def gpt_dialogue(prompt, question, example):
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo-1106",
-        messages=gpt_create_messages(prompt, question, example),
+        messages=gpt_create_messages_fault_desc(prompt, question, example),
         temperature=0.5
+    )
+    print(response)
+    return response['choices'][0]['message']['content']
+
+def gpt_dialogue_from_messages(messages):
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo-1106",
+        messages=messages,
+        temperature=0.1
     )
     print(response)
     return response['choices'][0]['message']['content']

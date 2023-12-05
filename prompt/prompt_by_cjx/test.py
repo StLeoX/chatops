@@ -35,8 +35,8 @@ def format_latex_poly(coefficients):
 
 
 # 读取数据
-prompt = read_file('metadata/prompt_base.md')
-example = read_file('metadata/example-ch.md')
+prompt = read_file('metadata/prompt3/prompt_base.md')
+example = read_file('metadata/prompt3/example-ch.md')
 file_path = 'metadata/faultplayInfo.json'
 file_obj = read_json_file(file_path)
 
