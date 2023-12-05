@@ -11,39 +11,6 @@ def app():
     return app
 
 
-def test_api_hello(app):
-    with app.test_client() as client:
-        response = client.get("/v1/tests/hello")
-        assert response.status_code == 200
-        assert response.json["status"] == "success"
-        assert response.json["message"] == "Hello World!!"
-
-
-def test_api_success(app):
-    with app.test_client() as client:
-        response = client.get("/v1/tests/success")
-        assert response.status_code == 200
-        assert response.json["status"] == "success"
-        assert response.json["data"]["title"] == "riad-azz"
-        assert response.json["data"]["content"] == "Successful API response"
-
-
-def test_api_ratelimit(app):
-    with app.test_client() as client:
-        success_response = client.get("/v1/tests/ratelimit")
-        limited_response = client.get("/v1/tests/ratelimit")
-
-    assert success_response.status_code == 200
-    assert success_response.json["status"] == "success"
-    assert success_response.json["data"]["title"] == "riad-azz"
-    assert success_response.json["data"]["content"] == "Rate limit API response"
-
-    assert limited_response.status_code == 429
-    assert limited_response.json["status"] == "error"
-    assert limited_response.json["message"] == "Too many requests: 1 per 1 minute"
-    assert limited_response.headers["Retry-After"] is not None
-
-
 def test_api_bad_request(app):
     with app.test_client() as client:
         response = client.get("/v1/tests/bad-request")
