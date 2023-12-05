@@ -29,8 +29,8 @@ def get_messages_summary_fault_report(fault_result_json, user_expectation):
     """
 
     # 读取文件信息
-    prompt = read_file("D:\MY_FILES\Project\Python\chatops\\resources\prompt3.md")
-    example = read_file("D:\MY_FILES\Project\Python\chatops\\resources\example3.md")
+    prompt = read_file("resources/prompt3/prompt3.md")
+    example = read_file("resources/prompt3/example3.md")
 
     # prompt 填入用户期望
     data = {
