@@ -1,0 +1,15 @@
+{
+    "planName": "系统首页网络抖动演练",
+    "startTime": "2023-11-06 07:22:13",
+    "endTime": "2023-11-06 07:27:18",
+    "duration": "0h 5min 5s",
+    "faultNum": 3,
+    "player": "粥隔离",
+    "playProgress": 100,
+    "playStatusInfo": {
+        "unStart": 0,
+        "running": 0,
+        "success": 4,
+        "failure": 0
+    }
+}
