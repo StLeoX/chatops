@@ -151,3 +151,5 @@ cython_debug/
 **/database
 **/*.db
 **/instance
+
+/prompt/prompt_by_cjx
