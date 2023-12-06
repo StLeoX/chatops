@@ -19,3 +19,7 @@ gunicorn
 python-dotenv
 email-validator
 Werkzeug
+
+openai
+tiktoken
+httpx
