@@ -18,8 +18,7 @@ def get_api_key(path):
         openai_key = json.loads(f.read())
     return openai_key['api']
 
-
-openai.api_key = "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"
+openai.api_key = "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"
 
 
 
