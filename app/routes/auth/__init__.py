@@ -22,18 +22,18 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/v1")
 
 @auth_bp.before_request
 def before_request():
-    print("Incoming request:", request.url, request.method, request.json)
+    logging.info("Incoming request:", request.url, request.method, request.json)
 
 @auth_bp.route('/login', methods=['POST'])
-@validate_login
+@validate_login # 使用装饰器验证登录请求
 def login():
     data = request.json
-    print(data)
+    # logging.info(data)
 
     try:
         user = User(data.get('name'), data.get('api_key'))
     except ValueError as e:
-        print(str(e)) # Username already exists
+        logging.info(str(e))
         return jsonify({"message": "用户名已存在"}), 409
     
     login_user(user)
@@ -42,15 +42,16 @@ def login():
 
 
 @auth_bp.route("/logout", methods=["GET", "POST"])
-@validate_logout
+@validate_logout # 使用装饰器验证注销请求
 def logout():
     data = request.json
     current_user = User()
     current_user.load(data.get('name'))
     if not current_user.is_authenticated:
-        # 处理未登录的情况，例如返回特定的响应
+        # 处理未登录的情况，返回401
         return jsonify({"message": "未登录"}), 401
 
     logout_user()
+    # 从数据库中删除用户
     current_user.delete()
     return jsonify({"message": "用户已注销"})

@@ -1,5 +1,6 @@
 from functools import wraps
 from flask import request, jsonify
+import logging
 
 
 def validate_json_length(json_obj, max_length):
@@ -36,7 +37,7 @@ def validate_login(f):
 def mock_validate_login(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        print("Mock login validation performed")
+        logging.info("Mock login validation performed")
         return f(*args, **kwargs)
     return decorated_function
 
