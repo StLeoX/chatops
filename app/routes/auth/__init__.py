@@ -15,24 +15,20 @@ import logging
 from app.models.auth import User
 from app.extensions import db, bcrypt
 
-from app.utils.auth import validate_api_key
+from app.utils.auth import validate_login, validate_logout
 
 
-auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
+auth_bp = Blueprint("auth", __name__, url_prefix="/v1")
 
 @auth_bp.before_request
 def before_request():
     print("Incoming request:", request.url, request.method, request.json)
 
 @auth_bp.route('/login', methods=['POST'])
+@validate_login
 def login():
     data = request.json
     print(data)
-    if not data.get('name'):
-        return jsonify({"message": "用户名不能为空"}), 400
-    
-    if not validate_api_key(data.get('apt_key')):
-        return jsonify({"message": "API key 不合法"}), 401
 
     try:
         user = User(data.get('name'), data.get('api_key'))
@@ -46,6 +42,7 @@ def login():
 
 
 @auth_bp.route("/logout", methods=["GET", "POST"])
+@validate_logout
 def logout():
     data = request.json
     current_user = User()
