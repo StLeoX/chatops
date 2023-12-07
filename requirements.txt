@@ -6,6 +6,7 @@ Flask-Login
 Flask-Bcrypt
 Flask-Limiter
 Flask-Caching
+Flask-Redis
 Flask-RESTful
 Flask-SQLAlchemy
 Flask-Mail
