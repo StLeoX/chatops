@@ -1,4 +1,6 @@
 # Flask modules
+import logging
+
 from flask_login import LoginManager
 from flask_bcrypt import Bcrypt
 
@@ -14,7 +16,7 @@ login_manager.login_message_category = "info"
 
 @login_manager.user_loader
 def load_user(user_id):
-    print("load_user", user_id)
+    logging.debug("[chatops] load_user: ", user_id)
     user = User()
     user.load(user_id)
 
