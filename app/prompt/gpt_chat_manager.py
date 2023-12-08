@@ -2,7 +2,6 @@ import openai
 import re
 import logging
 
-from .prompt_manager import PromptManager
 from app.config.dev import *
 
 
@@ -18,8 +17,6 @@ class GptChatManager:
             self._api_key = os.environ.get("OPENAI_API_KEY", "")
         assert self._api_key
         self._model_kind = "gpt-3.5-turbo-1106"
-
-        self._prompt_manager = PromptManager()
 
         self._general_chat: openai.Client.chat
         self._fault_desc_chat: openai.Client.chat
@@ -38,25 +35,22 @@ class GptChatManager:
         # 预热对话
         # 网络连接配置：超时 3s, 重连 2 次
         self._fault_desc_chat = openai.OpenAI(api_key=self._api_key, timeout=3, max_retries=2).chat
-        self._do_gpt_chat(self._fault_desc_chat, self._prompt_manager.build_system_prompt_fault_desc(), "system")
+        # self._do_gpt_chat(self._fault_desc_chat, self._prompt_manager.build_system_prompt_fault_desc(), "system")
 
     def _new_expectation_chat(self):
         # 预热对话
         # 网络连接配置：超时 3s, 重连 2 次
         self._expectation_chat = openai.OpenAI(api_key=self._api_key, timeout=3, max_retries=2).chat
-        self._do_gpt_chat(self._expectation_chat, self._prompt_manager.build_system_prompt_expectation(), "system")
 
     def _new_fault_report_chat(self):
         # 预热对话
         # 网络连接配置：超时 3s, 重连 2 次
         self._fault_report_chat = openai.OpenAI(api_key=self._api_key, timeout=3, max_retries=2).chat
-        self._do_gpt_chat(self._fault_report_chat, self._prompt_manager.build_system_prompt_fault_report(), "system")
 
     def _new_advice_chat(self):
         # 预热对话
         # 网络连接配置：超时 3s, 重连 2 次
         self._advice_chat = openai.OpenAI(api_key=self._api_key, timeout=3, max_retries=2).chat
-        self._do_gpt_chat(self._advice_chat, self._prompt_manager.build_system_prompt_advice(), "system")
 
     def _do_gpt_chat(self, chat: openai.Client.chat, prompt: str, role: str = "user") -> bool:
         try:

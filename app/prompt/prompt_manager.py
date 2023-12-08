@@ -150,10 +150,8 @@ def get_pre_hot_suggestion():
         "total_num": 1500
     }
 
-    prompt_suggestion = pystache.render(prompt_suggestion, data_prompt)
-
     # 渲染模板并打印输出
-    return prompt_suggestion
+    return pystache.render(prompt_suggestion, data_prompt)
 
 
 def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301"):
