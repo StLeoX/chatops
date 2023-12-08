@@ -9,11 +9,12 @@
 '''
 import copy
 import json
-
 import pystache
 
 from app.prompt.prompt_static import *
 from app.utils.pdata import reform_data, pre_process_data_by_window, pre_process_item
+from app.config.dev import DEFAULT_MODEL
+
 import tiktoken
 
 
@@ -154,7 +155,7 @@ def get_pre_hot_suggestion():
     return pystache.render(prompt_suggestion, data_prompt)
 
 
-def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301"):
+def num_tokens_from_messages(messages, model=DEFAULT_MODEL):
     """
 
     返回Messages使用的token数量.

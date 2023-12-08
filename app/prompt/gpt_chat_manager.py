@@ -16,7 +16,7 @@ class GptChatManager:
         else:
             self._api_key = os.environ.get("OPENAI_API_KEY", "")
         assert self._api_key
-        self._model_kind = "gpt-3.5-turbo-1106"
+        self._model_kind = DEFAULT_MODEL
 
         self._general_chat: openai.Client.chat
         self._fault_desc_chat: openai.Client.chat
