@@ -44,3 +44,9 @@ def test_api_unknown_exception(app):
         assert response.status_code == 500
         assert response.json["status"] == "error"
         assert response.json["message"] == "Internal Server Error"
+
+
+def test_api_login(app):
+    # todo(fxc)
+    # ping after login
+    pass

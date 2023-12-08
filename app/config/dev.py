@@ -9,9 +9,11 @@ load_dotenv(ENV_FILE_PATH)
 
 # Flask
 SECRET_KEY = os.environ.get("SECRET_KEY", "YOUR-FALLBACK-SECRET-KEY")
+
 # Ratelimit
 RATELIMIT_ENABLED = os.environ.get("RATELIMIT_ENABLED", "False") == "True"
 RATELIMIT_STORAGE_URI = os.environ.get("RATELIMIT_STORAGE_URI", "memory://")
+
 # Caching
 CACHE_TYPE = os.environ.get("CACHE_TYPE", "SimpleCache")
 CACHE_ENABLED = os.environ.get("CACHE_ENABLED", "False") == "True"
@@ -19,8 +21,13 @@ CACHE_STORAGE_URL = os.environ.get("CACHE_STORAGE_URL", None)
 CACHE_EXEMPTED_ROUTES = [
     "/v1/auth/",
 ]
+
 # Redis
 REDIS_URL = "redis://:@localhost:6379/0"
+
+# GPT
+DEFAULT_MODEL = os.environ.get("DEFAULT_MODEL", "gpt-3.5-turbo-1106")
+
 
 class DevConfig:
     # Flask
