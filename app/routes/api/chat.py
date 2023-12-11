@@ -1,6 +1,11 @@
-import redis
+import logging
+
 from flask import Blueprint, request, abort
-from app.utils.api import success_response
+from flask_login import current_user
+
+import app
+from app.utils.api import success_response, error_response
+from app.extensions.db import db as redis
 
 chat_bp = Blueprint("chat", __name__, url_prefix="/chat")
 
@@ -51,7 +56,6 @@ def gen_fault_desc():
     boolean, string
     """
 
-    # todo(xla)
     fault_data = request.json["fault"]
     fault_id = fault_data["fid"]
     return success_response("fault_id " + fault_id)
@@ -78,10 +82,21 @@ def gen_fault_report():
     boolean, string
     """
 
-    # todo(xla)
-    fault_id = request.json["fid"]
-    # expectation = redis.Redis[""]
-    return success_response("report nothing")
+    if not current_user:
+        return error_response("请先登录", 401)
+
+    fid = request.json["fid"]
+    fault = redis.hget('faults', fid)
+    if not fault:
+        logging.error("fault no found")
+        return error_response("故障不存在", 404)
+
+    rid, report = app.the_chat_manager.gen_fault_report(fid)
+    if not rid:
+        return error_response("生成故障报告失败")
+
+    logging.debug(f"response report {rid}")
+    return success_response(report)
 
 
 @chat_bp.route("/gen_advice", methods=["POST"])
@@ -92,8 +107,18 @@ def gen_advice():
     boolean, string
     """
 
-    # todo(xla)
-    fault_id = request.json["fid"]
-    # expectation = redis.Redis[""]
-    # fault_report = redis.Redis[""]
-    return success_response("advice nothing")
+    if not current_user:
+        return error_response("请先登录", 401)
+
+    fid = request.json["fid"]
+    fault = redis.hget('faults', fid)
+    if not fault:
+        logging.error("fault no found")
+        return error_response("故障不存在", 404)
+
+    aid, advice = app.the_chat_manager.gen_advice(fid)
+    if not aid:
+        return error_response("生成运维建议失败")
+
+    logging.debug(f"response advice {aid}")
+    return success_response(advice)
