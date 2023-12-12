@@ -113,9 +113,11 @@ class GptChatManager:
         # todo(xla)
         pass
 
-    def gen_fault_report(self, fid) -> (int, json):
+    def gen_fault_report(self, fid) -> (int, str):
         """
         fid: fault id
+        -> int: report id
+        -> str: report content
         """
         fault = redis.hget('faults', fid)
         if not fault:
@@ -125,24 +127,27 @@ class GptChatManager:
         if not expectation:
             logging.error("expectation no found")
 
-        _, fault_report = self._do_gpt_chat_from_messages(self._fault_report_chat,
+        _, fault_report_completion = self._do_gpt_chat_from_messages(self._fault_report_chat,
                                                           messages=get_messages_summary_fault_report(fault,
                                                                                                      expectation))
 
-        if not fault_report:
+        if not fault_report_completion or len(fault_report_completion.choices) == 0:
             return 0, None
 
         # 将报告写回 redis
         redis['rid'] += 1
         rid = redis['rid']
+        fault_report = fault_report_completion.choices[0]
         redis.hset('reports', rid, fault_report)
 
         return rid, fault_report
 
-    def gen_advice(self, fid) -> (int, json):
+    def gen_advice(self, fid) -> (int, str):
         """
-                fid: fault id
-                """
+        fid: fault id
+        -> int: advice id
+        -> str: advice content
+        """
         fault = redis.hget('faults', fid)
         if not fault:
             logging.error("fault no found")
@@ -155,15 +160,16 @@ class GptChatManager:
         if not report:
             logging.error("report no found")
 
-        _, advice = self._do_gpt_chat_from_messages(self._fault_report_chat,
+        _, advice_completion = self._do_gpt_chat_from_messages(self._fault_report_chat,
                                                     messages=get_messages_suggestion(fault, expectation, report))
 
-        if not advice:
+        if not advice_completion or len(advice_completion.choices) == 0:
             return 0, None
 
         # 将建议写回 redis
         redis['aid'] += 1
         aid = redis['aid']
+        advice = advice_completion.choices[0]
         redis.hset('reports', aid, advice)
 
         return aid, advice
