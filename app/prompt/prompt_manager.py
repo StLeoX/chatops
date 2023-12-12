@@ -20,6 +20,25 @@ from app.config.dev import DEFAULT_MODEL
 import tiktoken
 
 
+# 一
+def get_prompt_fault_desc(fault_workflow_json):
+    return pystache.render(prompt_fault_desc_workflow, {'fault_workflow_json': fault_workflow_json})
+
+
+def get_pre_hot_fault_desc():
+    return pre_hot_fault_desc
+
+
+# 二
+def get_prompt_expectation(expectation_text):
+    return pystache.render(prompt_expectation, {'expectation_text': expectation_text})
+
+
+def get_pre_hot_expectation():
+    return pre_hot_expectation
+
+
+# 三
 def get_messages_summary_fault_report(fault_result_json, user_expectation, total_num=1500):
     """
     获取功能3（总结错误报告）的messages作为GPT传入参数
@@ -106,6 +125,7 @@ def get_pre_hot_fault_report():
     return prompt
 
 
+# 四
 def get_messages_suggestion(fault_desc, user_expectation, fault_report, total_num=1500):
     """
     获取功能4（总结错误报告）的messages作为GPT传入参数
@@ -139,7 +159,7 @@ def get_messages_suggestion(fault_desc, user_expectation, fault_report, total_nu
         {"role": "system", "content": suggestion},
         {"role": "user", "content": "run"},
         {"role": "assistant", "content": example_suggestion},
-            {"role": "user", "content": message}
+        {"role": "user", "content": message}
     ]
 
     return messages
@@ -176,7 +196,8 @@ def num_tokens_from_messages(messages, model=DEFAULT_MODEL):
         logging.warning("[chatops] model not found. Using cl100k_base encoding.")
         encoding = tiktoken.get_encoding("cl100k_base")
     if model == "gpt-3.5-turbo":
-        logging.warning("[chatops] gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0301.")
+        logging.warning(
+            "[chatops] gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0301.")
         return num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301")
     elif model == "gpt-4":
         logging.warning("[chatops] gpt-4 may change over time. Returning num tokens assuming gpt-4-0314.")
