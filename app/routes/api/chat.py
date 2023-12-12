@@ -51,10 +51,18 @@ def gen_fault_desc():
     boolean, string
     """
 
-    # todo(xla)
-    fault_data = request.json["fault"]
-    fault_id = fault_data["fid"]
-    return success_response("fault_id " + fault_id)
+    if not current_user:
+        return error_response("请先登录", 401)
+
+    fault_json = request.json["fault"]
+
+    fid, fault_desc = app.the_chat_manager.gen_fault_desc(fault_json)
+
+    if not fid:
+        return error_response("生成故障场景描述失败")
+
+    logging.debug(f"response fault {fid}")
+    return success_response(fault_desc)
 
 
 @chat_bp.route("/gen_expect", methods=["POST"])
@@ -66,8 +74,24 @@ def gen_expect():
     """
 
     # todo(xla)
-    fault_id = request.json["fid"]
-    return success_response("expect nothing")
+    if not current_user:
+        return error_response("请先登录", 401)
+
+    fid = request.json["fid"]
+    fault = redis.hget('faults', fid)
+    if not fault:
+        logging.error("fault no found")
+        return error_response("故障不存在", 404)
+
+    expectation_text = request.json["expect"]
+
+    eid, expectation = app.the_chat_manager.gen_expect(expectation_text)
+    if not eid:
+        return error_response("生成用户期望 JSON 失败")
+
+    logging.debug(f"response expectation {eid}")
+    # todo: 针对返回 json 需要特殊处理下？
+    return success_response(expectation)
 
 
 @chat_bp.route("/gen_fault_report", methods=["POST"])
