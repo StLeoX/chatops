@@ -10,7 +10,6 @@ load_dotenv(ENV_FILE_PATH)
 
 # Flask
 SECRET_KEY = os.environ.get("SECRET_KEY", "YOUR-FALLBACK-SECRET-KEY")
-DATABASE_URI = "sqlite:///database.db"
 # Ratelimit
 RATELIMIT_ENABLED = os.environ.get("RATELIMIT_ENABLED", "False") == "True"
 RATELIMIT_STORAGE_URI = os.environ.get("RATELIMIT_STORAGE_URI", "memory://")
@@ -21,6 +20,8 @@ CACHE_STORAGE_URL = os.environ.get("CACHE_STORAGE_URL", None)
 CACHE_EXEMPTED_ROUTES = [
     "/v1/auth/",
 ]
+# Redis
+REDIS_URL = "redis://:@localhost:6379/0"
 
 
 class ProdConfig:
@@ -31,7 +32,7 @@ class ProdConfig:
     STATIC_AUTO_RELOAD = False
     SECRET_KEY = os.environ.get("SECRET_KEY", "YOUR-FALLBACK-SECRET-KEY")
     # Database
-    SQLALCHEMY_DATABASE_URI = DATABASE_URI
+    REDIS_URL = REDIS_URL
     # Ratelimit
     RATELIMIT_ENABLED = RATELIMIT_ENABLED
     RATELIMIT_STORAGE_URI = RATELIMIT_STORAGE_URI

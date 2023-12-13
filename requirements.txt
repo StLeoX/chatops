@@ -6,6 +6,7 @@ Flask-Login
 Flask-Bcrypt
 Flask-Limiter
 Flask-Caching
+Flask-Redis
 Flask-RESTful
 Flask-SQLAlchemy
 Flask-Mail
@@ -19,3 +20,11 @@ gunicorn
 python-dotenv
 email-validator
 Werkzeug
+pystache
+openai
+tiktoken
+httpx
+numpy
+pandas
+matplotlib
+cvxopt
