@@ -1,8 +1,11 @@
 # Flask modules
 from flask import Flask
+from app.prompt.gpt_chat_manager import GptChatManager
 
 # Other modules
 import os
+
+the_chat_manager: GptChatManager = None
 
 
 def create_app(debug: bool = False):
