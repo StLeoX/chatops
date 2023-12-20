@@ -8,6 +8,88 @@
 @Date    ：2023/12/6 17:07 
 '''
 
+# 功能一：故障场景描述
+prompt_fault_desc_workflow = r'''
+请你帮我解释下面的 JSON 代码，这段代码是用在智能运维系统中的，它描述了一种名为 `workflow` 的对象。
+你的任务是对这段代码进行解读，并以一句话概括其主要功能，以便非专业人士也能理解。解读的内容应该包括对象各个属性的含义和他们如何结合在一起工作的。请你尽量将解释写成一个连贯的段落。
+以下是 JSON 代码： {{fault_workflow_json}}
+'''
+
+# todo(yhc): 合并 workflow 和 config 的提示词
+prompt_fault_desc_config = r'''
+我有一段 JSON 代码，这段代码定义了一个名为`faultConfigInfo`的数组。这个数组包含了一系列的对象，每个对象描述了混沌实验中各个节点的执行信息。
+我希望你能帮助我理解这段代码，并解答以下问题：
+- 在这段代码中，每个节点对象的结构是怎样的？`nodeName`、`startTime`、`endTime`、`reason`和`stepSpanList`这些字段分别代表什么？
+- `stepSpanList`是一个包含多个对象的数组，它在这里代表什么含义？数组中的对象又是什么结构，`startTime`和`endTime`这两个字段又具有什么意义？
+- 这个`faultConfigInfo`数组是如何描述混沌实验中各个节点的执行情况的？这些信息是如何帮助我们理解混沌实验的执行流程和结果的？
+以下是 JSON 代码： {{fault_config_json}}
+'''
+
+pre_hot_fault_desc = r'''
+您是一个有用的人工智能，专门在Python中处理JSON数据。
+您可以解析JSON字符串、访问值、修改数据和完美地格式化JSON。
+您的任务是解析JSON字符串，并访问与给定键关联的值。
+'''
+
+# 功能二：用户期望描述
+prompt_expectation = r'''
+你将会被提供一段由自然语言写成的文本，代表用户对一个应用的目标期望。
+执行以下任务：
+1 - 把这些以JSON对象的形式输出，JSON 字段使用英文，例如成功率使用"success_rate"，登录模块使用"login_module"。
+2 - "note"字段可以说明一些数值的单位或者其他用户的期望需要说明的。\
+3 - 把 "80%"、"±10%"、"2秒" 等表示为字符串的转化为0.8、0.1、2这些数值型\
+4 - 下面是登录模块(login_module)的文本：{{expectation_text}}
+'''
+
+pre_hot_expectation = r'''
+你是一个有帮助的助手，旨在逐点提取基本信息，并使用这些基本信息将用户输入的自然语言转换成JSON格式。
+'''
+
+example_expectation_text = r'''
+登录模块：
+{
+CPU使用率：登录节点的CPU使用率不应超过设定的最大阈值（如80%），以避免过载导致登录延迟。\
+TPS（每秒事务数）：在网络抖动演练期间，系统的TPS应维持在正常范围内的±10%，以确保处理能力不受显著影响。\
+成功率：登录请求的成功率应高于设定的最低标准（如99%），确保用户能够成功登录。\
+响应时间：登录请求的响应时间应在2秒以内，超时重试机制应在5秒后启动。\
+}
+商品目录模块：
+{
+网络带宽接收（receiveBandwidth）：即便在网络延迟期间，receiveBandwidth应保持在正常水平的±50%以内，确保足够的数据吞吐量。\
+网络带宽发送（transmitBandwidth）：transmitBandwidth应该稳定，在演练期间不会有大幅下降，保证商品信息能够及时更新。\
+网络包接收（receivePackets）：receivePackets数应保持在正常范围内，允许的偏差为±60%。\
+网络包发送（transmitPackets）：transmitPackets数应稳定，不会因网络抖动导致大量数据包丢失.\
+}
+'''
+
+example_expectation_json = r'''
+{
+  "login_module": {
+    "cpu_usage": {
+      "description": "登录节点的CPU使用率",
+      "max_threshold": "0.8",
+      "note": "不应超过设定的最大阈值，以避免过载导致登录延迟"
+    },
+    "tps": {
+      "description": "每秒事务数（TPS）",
+      "normal_range_variation": "0.1",
+      "note": "在网络抖动演练期间，应维持在正常范围内的±10%，以确保处理能力不受显著影响"
+    },
+    "success_rate": {
+      "description": "登录请求的成功率",
+      "min_standard": "0.99",
+      "note": "应高于设定的最低标准，确保用户能够成功登录"
+    },
+    "response_time": {
+      "description": "登录请求的响应时间",
+      "max_time": "2",
+      "retry_mechanism_start": "5",
+      "note": "时间的单位是秒"
+    }
+  }
+}
+'''
+
 # 功能三读取文件信息
 prompt_fault_report = ("""
 你是一名经验丰富的服务器运维专家，目前手头有一份关于服务器故障注入测试的详细报告。这份报告记录了多次故障注入演练的数据，每次演练的名称（name）和一系列系统响应数据（playPodInfo）都已包含在内。在playPodInfo中，playIndexInfo记录了CPU使用率、接收和发送的数据包数量（receivePackets和transmitPackets）以及接收和发送的带宽（receiveBandwidth和transmitBandwidth）在特定Unix时间点的数值。

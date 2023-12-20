@@ -33,11 +33,13 @@ class GptChatManager:
         # 网络连接配置：超时 3s, 重连 2 次
         self._fault_desc_chat = openai.OpenAI(api_key=self._api_key, timeout=3, max_retries=2).chat
         # self._do_gpt_chat(self._fault_desc_chat, self._prompt_manager.build_system_prompt_fault_desc(), "system")
+        self._do_gpt_chat(self._fault_desc_chat, get_pre_hot_fault_desc(), 'system')
 
     def _new_expectation_chat(self):
         # 预热对话
         # 网络连接配置：超时 3s, 重连 2 次
         self._expectation_chat = openai.OpenAI(api_key=self._api_key, timeout=3, max_retries=2).chat
+        self._do_gpt_chat(self._expectation_chat, get_pre_hot_expectation(), 'system')
 
     def _new_fault_report_chat(self):
         # 预热对话
@@ -105,14 +107,6 @@ class GptChatManager:
         success, _ = self._do_gpt_chat(self._general_chat, prompt)
         return success
 
-    def gen_fault_desc(self) -> bool:
-        # todo(xla)
-        pass
-
-    def gen_expect(self) -> bool:
-        # todo(xla)
-        pass
-
     def gen_fault_report(self, fid) -> (int, str):
         """
         fid: fault id
@@ -173,3 +167,37 @@ class GptChatManager:
         redis.hset('reports', aid, advice)
 
         return aid, advice
+
+    def gen_fault_desc(self, fault_workflow: json, fault_config: json) -> (int, str):
+        """
+        fault_workflow:
+        fault_config:
+        """
+        _, fault_desc = self._do_gpt_chat(self._fault_desc_chat, get_prompt_fault_desc(fault_workflow))
+        if not fault_desc:
+            return 0, None
+
+        # 将描述写回 redis
+        redis['fid'] += 1
+        fid = redis['fid']
+        redis.hset('faults', fid, fault_desc)
+
+        return fid, fault_desc
+
+    def gen_expect(self, expectation_text: str) -> (int, json):
+        """
+        expectation_text:
+        """
+        # todo(cjx): 预处理用户期望文本
+        # expectation_text = pre_handle(expectation_text)
+
+        # 将期望写回 redis
+        redis['eid'] += 1
+        eid = redis['eid']
+        redis.hset('expectations', eid, expectation_text)
+
+        _, expectation_json = self._do_gpt_chat(self._expectation_chat, get_prompt_expectation(expectation_text))
+        if not expectation_json:
+            return 0, None
+
+        return eid, expectation_json
