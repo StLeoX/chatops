@@ -26,14 +26,6 @@ class RequestMocker:
         return user_data
 
     @classmethod
-    def echo_request(cls, user_id):
-        if not cls.user_data:
-            cls.user_data = cls.load_all_user_data()
-
-        user_data = cls.user_data.get(user_id, {})
-        return jsonify(user_data)
-
-    @classmethod
     def extract_request(cls, user_id):
         if not cls.user_data:
             cls.user_data = cls.load_all_user_data()
@@ -61,10 +53,39 @@ class RequestMocker:
         return jsonify({'message': 'DELETE request simulated successfully', 'deleted_data': deleted_data})
 
     @classmethod
-    def get_value_by_key(cls, user_id, key):
+    def _echo_request_category(cls, user_id, category):
+        if not cls.user_data:
+            cls.user_data = cls.load_all_user_data()
+
+        user_data = cls.user_data.get(user_id, {}).get(category, {})
+        return jsonify(user_data)
+
+    @classmethod
+    def echo_request_workflow(cls, user_id):
+        return cls._echo_request_category(user_id, 'workflow')
+
+    @classmethod
+    def echo_request_fault_config(cls, user_id):
+        return cls._echo_request_category(user_id, 'fault_config')
+
+    @classmethod
+    def echo_request_fault_play(cls, user_id):
+        return cls._echo_request_category(user_id, 'fault_play')
+
+    @classmethod
+    def echo_request_record(cls, user_id):
+        return cls._echo_request_category(user_id, 'record')
+
+    @classmethod
+    def get_value_by_key(cls, user_id, key, category=None):
         if not cls.user_data:
             cls.user_data = cls.load_all_user_data()
 
         user_data = cls.user_data.get(user_id, {})
+
+        # Use _echo_request_category if category is provided
+        if category:
+            user_data = user_data.get(category, {})
+
         value = user_data.get(key, None)
         return value
