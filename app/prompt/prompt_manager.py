@@ -39,7 +39,7 @@ def get_pre_hot_expectation():
 
 
 # 三
-def get_messages_summary_fault_report(fault_result_json, user_expectation, total_num=1500):
+def get_messages_fault_report(fault_result_json, user_expectation, total_num=1500):
     """
     获取功能3（总结错误报告）的messages作为GPT传入参数
 
@@ -96,6 +96,10 @@ def get_messages_summary_fault_report(fault_result_json, user_expectation, total
     ]
 
     return messages
+
+
+def get_prompt_fault_analysis():
+    return example_fault_analysis
 
 
 def get_pre_hot_fault_report():
