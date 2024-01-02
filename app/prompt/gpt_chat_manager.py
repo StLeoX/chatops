@@ -144,7 +144,7 @@ class GptChatManager:
         return eid, expectation_json
 
     # 三
-    def gen_fault_report_and_analysis(self, fid) -> (int, str, str):
+    def gen_fault_result(self, fid) -> (int, str, str):
         """
         fid: fault id
         -> int: report id

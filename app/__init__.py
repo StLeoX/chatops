@@ -1,5 +1,7 @@
 # Flask modules
 from flask import Flask
+from flasgger import Swagger
+
 from app.prompt.gpt_chat_manager import GptChatManager
 
 # Other modules
@@ -18,6 +20,9 @@ def create_app(debug: bool = False):
     app = Flask(
         __name__
     )
+
+    # flasgger
+    swagger = Swagger(app)
 
     # Set current_app context
     app.app_context().push()
