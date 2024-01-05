@@ -151,7 +151,7 @@ def gen_fault_result():
         return error_response("请先登录", 401)
 
     fid = request.args.get('fid')
-    fault = redis.hget('faults', fid)
+    fault = redis.hget('faults', fid).decode('utf-8')
     if not fault:
         logging.error("fault no found")
         return error_response("故障不存在", 404)
@@ -186,7 +186,7 @@ def gen_expect():
         return error_response("请先登录", 401)
 
     fid = request.json["fid"]
-    fault = redis.hget('faults', fid)
+    fault = redis.hget('faults', fid).decode('utf-8')
     if not fault:
         logging.error("fault no found")
         return error_response("故障不存在", 404)
