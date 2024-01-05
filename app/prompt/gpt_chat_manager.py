@@ -119,8 +119,7 @@ class GptChatManager:
             return 0, None
 
         # 将描述写回 redis
-        redis['fid'] += 1
-        fid = redis['fid']
+        fid = redis.incr('fid')
         redis.hset('faults', fid, fault_desc)
 
         return fid, fault_desc
@@ -134,8 +133,7 @@ class GptChatManager:
         # expectation_text = pre_handle(expectation_text)
 
         # 将期望写回 redis
-        redis['eid'] += 1
-        eid = redis['eid']
+        eid = redis.incr('eid')
         redis.hset('expectations', eid, expectation_text)
 
         _, expectation_json = self._do_gpt_chat(self._expectation_chat, get_prompt_expectation(expectation_text))
@@ -152,11 +150,11 @@ class GptChatManager:
         -> str: report content
         -> str: problem analysis content
         """
-        fault = redis.hget('faults', fid)
+        fault = redis.hget('faults', fid).decode('utf-8')
         if not fault:
             logging.error("fault no found")
 
-        expectation = redis.hget('expectations', fid)
+        expectation = redis.hget('expectations', fid).decode('utf-8')
         if not expectation:
             logging.error("expectation no found")
 
@@ -169,8 +167,7 @@ class GptChatManager:
             return 0, None, None
 
         # 将报告写回 redis
-        redis['rid'] += 1
-        rid = redis['rid']
+        rid = redis.incr('rid')
         fault_report = fault_report_completion.choices[0]
         redis.hset('reports', rid, fault_report)
 
@@ -190,15 +187,15 @@ class GptChatManager:
         -> int: advice id
         -> str: advice content
         """
-        fault = redis.hget('faults', fid)
+        fault = redis.hget('faults', fid).decode('utf-8')
         if not fault:
             logging.error("fault no found")
 
-        expectation = redis.hget('expectations', fid)
+        expectation = redis.hget('expectations', fid).decode('utf-8')
         if not expectation:
             logging.error("expectation no found")
 
-        report = redis.hget('reports', fid)
+        report = redis.hget('reports', fid).decode('utf-8')
         if not report:
             logging.error("report no found")
 
@@ -209,8 +206,7 @@ class GptChatManager:
             return 0, None
 
         # 将建议写回 redis
-        redis['aid'] += 1
-        aid = redis['aid']
+        aid = redis.incr('aid')
         advice = advice_completion.choices[0]
         redis.hset('reports', aid, advice)
 
