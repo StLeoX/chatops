@@ -107,11 +107,49 @@ class GptChatManager:
         success, _ = self._do_gpt_chat(self._general_chat, prompt)
         return success
 
-    def gen_fault_report(self, fid) -> (int, str):
+    # 一
+    def gen_fault_desc(self, fault_workflow: json, fault_config: json) -> (int, str):
+        """
+        fault_workflow:
+        fault_config:
+        """
+        _, fault_desc = self._do_gpt_chat(self._fault_desc_chat, get_prompt_fault_desc(fault_workflow))
+        if not fault_desc:
+            return 0, None
+
+        # 将描述写回 redis
+        redis['fid'] += 1
+        fid = redis['fid']
+        redis.hset('faults', fid, fault_desc)
+
+        return fid, fault_desc
+
+    # 二
+    def gen_expect(self, expectation_text: str) -> (int, json):
+        """
+        expectation_text:
+        """
+        # todo(cjx): 预处理用户期望文本
+        # expectation_text = pre_handle(expectation_text)
+
+        # 将期望写回 redis
+        redis['eid'] += 1
+        eid = redis['eid']
+        redis.hset('expectations', eid, expectation_text)
+
+        _, expectation_json = self._do_gpt_chat(self._expectation_chat, get_prompt_expectation(expectation_text))
+        if not expectation_json:
+            return 0, None
+
+        return eid, expectation_json
+
+    # 三
+    def gen_fault_result(self, fid) -> (int, str, str):
         """
         fid: fault id
         -> int: report id
         -> str: report content
+        -> str: problem analysis content
         """
         fault = redis.hget('faults', fid)
         if not fault:
@@ -121,12 +159,13 @@ class GptChatManager:
         if not expectation:
             logging.error("expectation no found")
 
+        # 生成 report
         _, fault_report_completion = self._do_gpt_chat_from_messages(self._fault_report_chat,
-                                                          messages=get_messages_summary_fault_report(fault,
-                                                                                                     expectation))
+                                                                     get_messages_fault_report(fault,
+                                                                                               expectation))
 
         if not fault_report_completion or len(fault_report_completion.choices) == 0:
-            return 0, None
+            return 0, None, None
 
         # 将报告写回 redis
         redis['rid'] += 1
@@ -134,8 +173,16 @@ class GptChatManager:
         fault_report = fault_report_completion.choices[0]
         redis.hset('reports', rid, fault_report)
 
-        return rid, fault_report
+        # 生成 analysis
+        _, fault_analysis_completion = self._do_gpt_chat(self._fault_report_chat, get_prompt_fault_analysis())
 
+        if not fault_analysis_completion or len(fault_report_completion.choices) == 0:
+            return 0, None, None
+        fault_analysis = fault_analysis_completion[0]
+
+        return rid, fault_report, fault_analysis
+
+    # 四
     def gen_advice(self, fid) -> (int, str):
         """
         fid: fault id
@@ -155,7 +202,7 @@ class GptChatManager:
             logging.error("report no found")
 
         _, advice_completion = self._do_gpt_chat_from_messages(self._fault_report_chat,
-                                                    messages=get_messages_suggestion(fault, expectation, report))
+                                                               get_messages_suggestion(fault, expectation, report))
 
         if not advice_completion or len(advice_completion.choices) == 0:
             return 0, None
@@ -167,37 +214,3 @@ class GptChatManager:
         redis.hset('reports', aid, advice)
 
         return aid, advice
-
-    def gen_fault_desc(self, fault_workflow: json, fault_config: json) -> (int, str):
-        """
-        fault_workflow:
-        fault_config:
-        """
-        _, fault_desc = self._do_gpt_chat(self._fault_desc_chat, get_prompt_fault_desc(fault_workflow))
-        if not fault_desc:
-            return 0, None
-
-        # 将描述写回 redis
-        redis['fid'] += 1
-        fid = redis['fid']
-        redis.hset('faults', fid, fault_desc)
-
-        return fid, fault_desc
-
-    def gen_expect(self, expectation_text: str) -> (int, json):
-        """
-        expectation_text:
-        """
-        # todo(cjx): 预处理用户期望文本
-        # expectation_text = pre_handle(expectation_text)
-
-        # 将期望写回 redis
-        redis['eid'] += 1
-        eid = redis['eid']
-        redis.hset('expectations', eid, expectation_text)
-
-        _, expectation_json = self._do_gpt_chat(self._expectation_chat, get_prompt_expectation(expectation_text))
-        if not expectation_json:
-            return 0, None
-
-        return eid, expectation_json
