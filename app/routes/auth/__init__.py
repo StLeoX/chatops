@@ -11,7 +11,6 @@ import logging
 # Local modules
 import app
 from app.models.auth import User
-from app.extensions import db, bcrypt
 
 from app.utils.auth import validate_login, validate_logout
 from app.utils.api import success_response, error_response

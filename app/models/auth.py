@@ -1,18 +1,14 @@
 # Flask modules
 from flask_login import UserMixin
 
-# Other modules
-from datetime import datetime
+import app
 
-# Local modules
-from app.extensions.db import db
-    
 
 class User(UserMixin):
     def __init__(self, name=None, key=None):
         self.name = name
         self.key = key
-        self.redis = db
+        self.redis = app.the_redis
 
         if name and key:
             self.save(self.name, self.key)
@@ -32,11 +28,11 @@ class User(UserMixin):
         if key:
             return key
         return None
-    
+
     def load(self, name):
         self.name = name
         self.key = self.get()
-    
+
     def is_authenticated(self):
         if self.redis.hexists('users', self.name):
             return True
@@ -50,4 +46,3 @@ class User(UserMixin):
 
     def __repr__(self):
         return f"<User {self.id, self.name}>"
-

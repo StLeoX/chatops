@@ -2,12 +2,12 @@
 from flask import Flask
 from flasgger import Swagger
 
-from app.prompt.gpt_chat_manager import GptChatManager
-
 # Other modules
 import os
+import redis
 
-the_chat_manager: GptChatManager = None
+the_chat_manager = None
+the_redis = None
 
 
 def create_app(debug: bool = False):
@@ -41,15 +41,17 @@ def create_app(debug: bool = False):
     # setup_flask_logger()
 
     # Initialize extensions
-    from app.extensions import db, cors, cache, bcrypt, limiter, login_manager
+    from app.extensions import cors, cache, bcrypt, limiter, login_manager
 
-    db.init_app(app)
     cors.init_app(app)
-
     cache.init_app(app)
     bcrypt.init_app(app)
     limiter.init_app(app)
     login_manager.init_app(app)
+
+    # 初始化 redis 配置
+    global the_redis
+    the_redis = redis.from_url(app.config.get('REDIS_URL'))
 
     # Import all models and Create database tables
     from app import models
