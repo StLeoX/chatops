@@ -3,6 +3,7 @@ import time
 import logging
 
 import openai
+from openai.types.chat import ChatCompletion
 
 from app.config.dev import *
 from .prompt_manager import *
@@ -35,7 +36,6 @@ class GptChatManager:
         # 预热对话
         # 网络连接配置：超时 3s, 重连 2 次
         self._fault_desc_chat = openai.OpenAI(api_key=self._api_key, timeout=3, max_retries=2).chat
-        # self._do_gpt_chat(self._fault_desc_chat, self._prompt_manager.build_system_prompt_fault_desc(), "system")
         self._do_gpt_chat(self._fault_desc_chat, get_pre_hot_fault_desc(), 'system')
 
     def _new_expectation_chat(self):
@@ -56,7 +56,11 @@ class GptChatManager:
         self._advice_chat = openai.OpenAI(api_key=self._api_key, timeout=3, max_retries=2).chat
         self._do_gpt_chat(self._advice_chat, get_pre_hot_suggestion(), 'system')
 
-    def _do_gpt_chat(self, chat, prompt: str, role: str = "user") -> (bool, json):
+    def _do_gpt_chat(self, chat, prompt: str, role: str = "user") -> (bool, ChatCompletion):
+        """
+        -> bool: valid resp
+        -> ChatCompletion: ChatCompletion.Choice.message.content := str
+        """
         n_retry = 3
         for i in range(n_retry):
             try:
@@ -79,7 +83,11 @@ class GptChatManager:
                 logging.error(f"[chatops]: {e}")
                 return False, None
 
-    def _do_gpt_chat_from_messages(self, chat, messages) -> (bool, json):
+    def _do_gpt_chat_from_messages(self, chat, messages) -> (bool, ChatCompletion):
+        """
+        -> bool: valid resp
+        -> ChatCompletion: ChatCompletion.Choice.message.content := str
+        """
         try:
             gpt_response = chat.completions.create(model=self._model_kind,
                                                    messages=messages)
@@ -122,9 +130,10 @@ class GptChatManager:
         fault_workflow:
         fault_config:
         """
-        _, fault_desc = self._do_gpt_chat(self._fault_desc_chat, get_prompt_fault_desc(fault_workflow))
-        if not fault_desc:
+        _, fault_desc_completion = self._do_gpt_chat(self._fault_desc_chat, get_prompt_fault_desc(fault_workflow))
+        if not fault_desc_completion or len(fault_desc_completion.choices) == 0:
             return 0, None
+        fault_desc = fault_desc_completion.choices[0].message.content
 
         # 将描述写回 redis
         fid = redis.incr('fid')
@@ -158,11 +167,11 @@ class GptChatManager:
         -> str: report content
         -> str: problem analysis content
         """
-        fault = redis.hget('faults', fid).decode('utf-8')
+        fault = redis.hget('faults', fid).decode()
         if not fault:
             logging.error("fault no found")
 
-        expectation = redis.hget('expectations', fid).decode('utf-8')
+        expectation = redis.hget('expectations', fid).decode()
         if not expectation:
             logging.error("expectation no found")
 
@@ -176,7 +185,7 @@ class GptChatManager:
 
         # 将报告写回 redis
         rid = redis.incr('rid')
-        fault_report = fault_report_completion.choices[0]
+        fault_report = fault_report_completion.choices[0].message.content
         redis.hset('reports', rid, fault_report)
 
         # 生成 analysis
@@ -195,15 +204,15 @@ class GptChatManager:
         -> int: advice id
         -> str: advice content
         """
-        fault = redis.hget('faults', fid).decode('utf-8')
+        fault = redis.hget('faults', fid).decode()
         if not fault:
             logging.error("fault no found")
 
-        expectation = redis.hget('expectations', fid).decode('utf-8')
+        expectation = redis.hget('expectations', fid).decode()
         if not expectation:
             logging.error("expectation no found")
 
-        report = redis.hget('reports', fid).decode('utf-8')
+        report = redis.hget('reports', fid).decode()
         if not report:
             logging.error("report no found")
 
@@ -215,7 +224,7 @@ class GptChatManager:
 
         # 将建议写回 redis
         aid = redis.incr('aid')
-        advice = advice_completion.choices[0]
+        advice = advice_completion.choices[0].message.content
         redis.hset('reports', aid, advice)
 
         return aid, advice
