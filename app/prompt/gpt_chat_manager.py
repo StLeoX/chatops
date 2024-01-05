@@ -5,8 +5,9 @@ import logging
 import openai
 
 from app.config.dev import *
-from app.extensions.db import db as redis
 from .prompt_manager import *
+
+from app import the_redis as redis
 
 
 class GptChatManager:

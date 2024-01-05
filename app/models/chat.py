@@ -1,10 +1,9 @@
-# Local modules
-from app.extensions.db import db
+import app
 
 # Redis based model
 class RedisModel:
     def __init__(self):
-        self.redis = db
+        self.redis = app.the_redis
 
     def save(self, key, data):
         self.redis.hset(self.__class__.__name__, str(key), str(data))

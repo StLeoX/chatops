@@ -5,7 +5,7 @@ from flask_login import current_user
 
 import app
 from app.utils.api import success_response, error_response
-from app.extensions.db import db as redis
+from app import the_redis as redis
 
 chat_bp = Blueprint("chat", __name__, url_prefix="/chat")
 
