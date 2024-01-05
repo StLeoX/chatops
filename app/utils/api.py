@@ -45,20 +45,20 @@ def success_response(
     cache_response: bool = False,
 ):
     """
-    Generate a success response with the provided data, status code, message, headers, cookies, and cache response flag.
+    Generate a success response.md with the provided data, status code, message, headers, cookies, and cache response.md flag.
 
     Parameters:
-        data (Any, optional): The data to be included in the response. Defaults to None.
-        status (int, optional): The status code of the response. Defaults to 200.
-        message (str, optional): The message to be included in the response. Defaults to None.
-        headers (dict, optional): The headers to be included in the response. Defaults to None.
-        cookies (dict, optional): The cookies to be included in the response. Defaults to None.
-        cache_response (bool, optional): Flag to indicate if the response should be cached. Defaults to False.
+        data (Any, optional): The data to be included in the response.md. Defaults to None.
+        status (int, optional): The status code of the response.md. Defaults to 200.
+        message (str, optional): The message to be included in the response.md. Defaults to None.
+        headers (dict, optional): The headers to be included in the response.md. Defaults to None.
+        cookies (dict, optional): The cookies to be included in the response.md. Defaults to None.
+        cache_response (bool, optional): Flag to indicate if the response.md should be cached. Defaults to False.
 
     Returns:
-        tuple: A tuple containing the response object and the status code.
-            - response (Response): The success response object.
-            - status (int): The status code of the response.
+        tuple: A tuple containing the response.md object and the status code.
+            - response.md (Response): The success response.md object.
+            - status (int): The status code of the response.md.
     """
     response_data = SuccessResponse(data=data, message=message)
     serialized_data = response_data.to_json()
@@ -85,18 +85,18 @@ def error_response(
     cookies: dict = None,
 ):
     """
-    Generate an error response with the given message, status code, headers, and cookies.
+    Generate an error response.md with the given message, status code, headers, and cookies.
 
     Parameters:
-        message (str): The error message to be included in the response. Defaults to "Internal Server Error".
-        status (int): The status code to be included in the response. Defaults to 500.
-        headers (dict): A dictionary of additional headers to be included in the response. Defaults to None.
-        cookies (dict): A dictionary of cookies to be included in the response. Defaults to None.
+        message (str): The error message to be included in the response.md. Defaults to "Internal Server Error".
+        status (int): The status code to be included in the response.md. Defaults to 500.
+        headers (dict): A dictionary of additional headers to be included in the response.md. Defaults to None.
+        cookies (dict): A dictionary of cookies to be included in the response.md. Defaults to None.
 
     Returns:
-        tuple: A tuple containing the response object and the status code.
-            - response (Response): The error response object.
-            - status (int): The status code of the response.
+        tuple: A tuple containing the response.md object and the status code.
+            - response.md (Response): The error response.md object.
+            - status (int): The status code of the response.md.
     """
     response_data = ErrorResponse(message=message)
     serialized_data = response_data.to_json()

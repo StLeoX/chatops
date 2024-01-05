@@ -62,16 +62,16 @@ def is_cachable(request: Request):
 
 def get_cached_response(request: Request):
     """
-    Returns a cached response if available for the given request, otherwise returns None.
+    Returns a cached response.md if available for the given request, otherwise returns None.
 
     Parameters:
-        request (Request): The request object for which to retrieve the cached response.
+        request (Request): The request object for which to retrieve the cached response.md.
 
     Returns:
-        Any: The cached response if available, otherwise None.
+        Any: The cached response.md if available, otherwise None.
 
     Raises:
-        Exception: If there is an error when fetching the cached response.
+        Exception: If there is an error when fetching the cached response.md.
     """
     if not is_cachable(request):
         return None
@@ -82,18 +82,18 @@ def get_cached_response(request: Request):
         if cached_response is not None:
             return cached_response
     except Exception as e:
-        logging.error(f"Error when fetching cached response: {e}")
+        logging.error(f"Error when fetching cached response.md: {e}")
 
     return None
 
 
 def set_cached_response(request: Request, response: Response):
     """
-    Sets the cached response for the given request and response.
+    Sets the cached response.md for the given request and response.md.
 
     Parameters:
         request (Request): The HTTP request object.
-        response (Response): The HTTP response object.
+        response (Response): The HTTP response.md object.
 
     Returns:
         None
@@ -106,6 +106,6 @@ def set_cached_response(request: Request, response: Response):
         if not cache.get(cache_key):
             cache.set(cache_key, response)
     except Exception as e:
-        logging.error(f"Error when caching response: {e}")
+        logging.error(f"Error when caching response.md: {e}")
 
     return None
