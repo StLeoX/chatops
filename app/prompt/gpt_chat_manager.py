@@ -1,6 +1,8 @@
-import openai
 import re
+import time
 import logging
+
+import openai
 
 from app.config.dev import *
 from app.extensions.db import db as redis
@@ -54,21 +56,27 @@ class GptChatManager:
         self._do_gpt_chat(self._advice_chat, get_pre_hot_suggestion(), 'system')
 
     def _do_gpt_chat(self, chat, prompt: str, role: str = "user") -> (bool, json):
-        try:
-            gpt_response = chat.completions.create(model=self._model_kind,
-                                                   messages=[{"role": role,
-                                                              "content": prompt}])
-        except openai.APITimeoutError as e:
-            logging.error(f"[chatops]: {e}")
-            return False, None
-        except openai.RateLimitError as e:
-            logging.error(f"[chatops]: {e}")
-            return False, None
-        except openai.APIStatusError as e:
-            logging.error(f"[chatops]: {e}")
-            return False, None
-
-        return gpt_response.id is not None, gpt_response
+        n_retry = 3
+        for i in range(n_retry):
+            try:
+                gpt_response = chat.completions.create(model=self._model_kind,
+                                                       messages=[{"role": role,
+                                                                  "content": prompt}],
+                                                       timeout=60)
+                return gpt_response.id is not None, gpt_response
+            except openai.APITimeoutError as e:
+                logging.error(f"[chatops]: {e}")
+                if i < n_retry - 1:
+                    # 等待
+                    time.sleep(5)
+                else:
+                    return False, None
+            except openai.RateLimitError as e:
+                logging.error(f"[chatops]: {e}")
+                return False, None
+            except openai.APIStatusError as e:
+                logging.error(f"[chatops]: {e}")
+                return False, None
 
     def _do_gpt_chat_from_messages(self, chat, messages) -> (bool, json):
         try:
