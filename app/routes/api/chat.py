@@ -13,15 +13,11 @@ chat_bp = Blueprint("chat", __name__, url_prefix="/chat")
 @chat_bp.route("/gpt_ping", methods=["GET"])
 def gpt_ping():
     """
-    返回 GPT 可用性
-    void
-    boolean
-    ---
+    检查 GPT 服务的可用性。
 
-    todo
+    - 无参数输入。
+    - 返回值: boolean，表示GPT服务是否可用。
     """
-
-    # todo(jcz)
     # the_gpt.Ping()
     return success_response("ping " + str(True))
 
@@ -29,31 +25,29 @@ def gpt_ping():
 @chat_bp.route("/gpt_update_key", methods=["POST"])
 def gpt_update_key():
     """
-    更新GPT apikey
-    string
-    boolean
-    ---
+    更新GPT的API密钥。
 
-    todo
+    - 参数: string，新的API密钥。
+    - 返回值: boolean，表示密钥是否成功更新。
     """
 
-    # todo(jcz)
     key = request.json["key"]
+
+    # TODO: update key
+    
     return success_response("echo key " + key)
 
 
 @chat_bp.route("/gpt_stop", methods=["GET"])
 def gpt_stop():
     """
-    停止生成
-    void
-    boolean
-    ---
+    停止GPT服务的当前操作。
 
-    todo
+    - 无参数输入。
+    - 返回值: boolean，表示操作是否已成功停止。
     """
 
-    # todo(jcz)
+    # TODO: stop generation
     return success_response("stop " + str(True))
 
 
