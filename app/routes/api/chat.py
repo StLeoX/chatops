@@ -13,15 +13,28 @@ chat_bp = Blueprint("chat", __name__, url_prefix="/chat")
 @chat_bp.route("/gpt_ping", methods=["GET"])
 def gpt_ping():
     """
-    返回 GPT 可用性
-    void
-    boolean
+    检查 GPT 服务的可用性
     ---
 
-    todo
-    """
+    parameters: []
 
-    # todo(jcz)
+    responses:
+      200:
+        description: GPT 服务可用
+        schema:
+          properties:
+            response:
+              type: boolean
+              description: 表示GPT服务是否可用
+      503:
+        description: GPT 服务不可用
+        schema:
+          properties:
+            error:
+              type: string
+              description: 错误信息说明服务不可用
+
+    """
     # the_gpt.Ping()
     return success_response("ping " + str(True))
 
@@ -29,31 +42,61 @@ def gpt_ping():
 @chat_bp.route("/gpt_update_key", methods=["POST"])
 def gpt_update_key():
     """
-    更新GPT apikey
-    string
-    boolean
+    更新GPT的API密钥
     ---
 
-    todo
+    parameters:
+      - name: key
+        description: 新的API密钥
+        in: body
+        type: string
+        required: true
+
+    responses:
+      200:
+        description: 密钥更新成功
+        schema:
+          properties:
+            response:
+              type: boolean
+              description: 表示密钥是否成功更新
+      401:
+        description: 密钥错误
+        schema:
+          properties:
+            error:
+              type: string
+              description: 错误信息说明密钥无效
+
     """
 
-    # todo(jcz)
     key = request.json["key"]
+
+    # TODO: update key
+    
     return success_response("echo key " + key)
 
 
 @chat_bp.route("/gpt_stop", methods=["GET"])
 def gpt_stop():
     """
-    停止生成
-    void
-    boolean
+    停止GPT服务的当前操作
     ---
 
-    todo
+    parameters: []
+
+    responses:
+      200:
+        description: 操作成功停止
+        schema:
+          properties:
+            response:
+              type: boolean
+              description: 表示操作是否已成功停止
+
     """
 
-    # todo(jcz)
+    # TODO: stop generation
     return success_response("stop " + str(True))
 
 
