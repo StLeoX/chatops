@@ -21,7 +21,7 @@ def test_api_cache(app):
         assert response.headers.get("Is-Cached-Response") is None
         assert response.json["status"] == "success"
         assert response.json["data"]["title"] == "riad-azz"
-        assert response.json["data"]["content"] == "Cached API response"
+        assert response.json["data"]["content"] == "Cached API response.md"
 
     request = response.request
     is_cached = get_cached_response(request)

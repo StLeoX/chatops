@@ -1,4 +1,6 @@
 import re
+import datetime
+
 import numpy as np
 
 import pandas as pd
@@ -29,17 +31,28 @@ def pre_process_item(file_obj):
     # 数据预处理：清除多余项
     for drill in file_obj:
         drill.pop('paramInfo', None)
-        for M in drill['playPodInfo']:
-            M.pop('pressTestInfo', None)
+        for key in drill:
+            if key.startswith('play') and 'Info' in key:
+                if drill[str(key)] is None:
+                    continue
+                for M in drill[str(key)]:
+                    M.pop('pressTestInfo', None)
     return file_obj
 
 
 def pre_process_data_by_window(file_obj, window_size=10):
     # 数据预处理
     for drill in file_obj:
-        for M in drill['playPodInfo']:
-            for index in M['playIndexInfo']:
-                index['data'] = pre_process_data_by_window_item(index['data'], window_size)
+        for key in drill:
+            if key.startswith('play') and 'Info' in key:
+                if drill[str(key)] is None:
+                    continue
+                for M in drill[str(key)]:
+                    key2 = "playIndexInfo"
+                    if 'playIndexInfo' not in M:
+                        key2 = "playIndexInfos"
+                    for index in M[str(key2)]:
+                        index['data'] = pre_process_data_by_window_item(index['data'], window_size)
     return file_obj
 
 
@@ -127,6 +140,14 @@ def reform_data(data):
             return round(data, 2)  # 保留两位小数
         else:
             return int(data)  # 保留整数位
+    elif isinstance(data, int):
+        try:
+            # 将Unix时间戳转换为标准格式的日期和时间
+            converted_time = datetime.datetime.utcfromtimestamp(data).strftime('%Y-%m-%d %H:%M:%S')
+            return converted_time
+        except Exception as e:
+            # 如果转换过程中出现异常，返回错误信息
+            return int(data)
 
     elif isinstance(data, str):
         if is_number(data):

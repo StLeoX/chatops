@@ -50,12 +50,12 @@ def get_messages_fault_report(fault_result_json, user_expectation, total_num=150
     Returns:
         用于与GPT沟通的messages参数
     """
-
-    # 数据规格化
-    fault_result_json = reform_data(fault_result_json)
-
     # 将 JSON 字符串转换为 Python 字典
-    fault_result_obj = json.loads(fault_result_json)
+    fault_result_obj_all = json.loads(fault_result_json)
+    fault_result_obj = fault_result_obj_all["faultPlayInfo"]
+    # 数据规格化
+    fault_result_obj = reform_data(fault_result_obj)
+
     # 清除多余项
     fault_result_obj = pre_process_item(fault_result_obj)
 
@@ -80,19 +80,28 @@ def get_messages_fault_report(fault_result_json, user_expectation, total_num=150
         # messages 的token数量
         token_num = _num_tokens_from_messages(messages)
 
-        if token_num < 14000:
+        if token_num < 11000:
             high = mid - 1  # 缩小窗口大小
         else:
             low = mid + 1  # 增大窗口大小
 
     # 数据压缩
     pre_process_data_by_window(fault_result_obj, high)
+    fault_result_obj = reform_data(fault_result_obj)
+    fault_result_obj_all["faultPlayInfo"] = fault_result_obj
 
-    fault_result_obj = json.dumps(fault_result_obj)
+    fault_result_info = json.dumps(fault_result_obj_all)
+    data = {
+        'user_expectation': user_expectation,
+        'total_num': total_num,
+        'fault_result_info': fault_result_info,
+        'example': example_fault_report
+    }
+
+    prompt = pystache.render(prompt_fault_report, data)
 
     messages = [
-        {"role": "assistant", "content": example_fault_report},
-        {"role": "user", "content": fault_result_obj}
+        {"role": "user", "content": prompt}
     ]
 
     return messages
@@ -109,7 +118,8 @@ def get_pre_hot_fault_report():
     # prompt 填入用户期望
     data = {
         'user_expectation': "",
-        'total_num': 1500
+        'total_num': 1500,
+        'fault_result_info': "",
     }
     # 渲染模板并打印输出
     prompt = pystache.render(prompt_fault_report, data)
