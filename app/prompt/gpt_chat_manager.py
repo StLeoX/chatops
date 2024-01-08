@@ -153,11 +153,11 @@ class GptChatManager:
         eid = redis.incr('eid')
         redis.hset('expectations', eid, expectation_text)
 
-        _, expectation_json = self._do_gpt_chat(self._expectation_chat, get_prompt_expectation(expectation_text))
-        if not expectation_json:
+        _, expectation_completion = self._do_gpt_chat(self._expectation_chat, get_prompt_expectation(expectation_text))
+        if not expectation_completion or len(expectation_completion) == 0:
             return 0, None
-
-        return eid, expectation_json
+        expectation = expectation_completion.choices[0].message.content
+        return eid, expectation
 
     # 三
     def gen_fault_result(self, fid) -> (int, str, str):
