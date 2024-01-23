@@ -51,7 +51,10 @@ def get_messages_fault_report(fault_result_json, user_expectation, total_num=150
         用于与GPT沟通的messages参数
     """
     # 将 JSON 字符串转换为 Python 字典
-    fault_result_obj_all = json.loads(fault_result_json)
+    fault_result_str = str(fault_result_json)
+    fault_result_str = fault_result_str.replace("\'", "\"")
+    fault_result_obj_all = json.loads(fault_result_str)
+
     fault_result_obj = fault_result_obj_all["faultPlayInfo"]
     # 数据规格化
     fault_result_obj = reform_data(fault_result_obj)
