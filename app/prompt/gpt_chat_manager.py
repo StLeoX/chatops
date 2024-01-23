@@ -160,16 +160,13 @@ class GptChatManager:
         return eid, expectation
 
     # 三
-    def gen_fault_result(self, fid) -> (int, str, str):
+    def gen_fault_result(self, fid: int, fault_play) -> (int, str, str):
         """
         fid: fault id
         -> int: report id
         -> str: report content
         -> str: problem analysis content
         """
-        fault = redis.hget('faults', fid).decode()
-        if not fault:
-            logging.error("fault no found")
 
         expectation = redis.hget('expectations', fid).decode()
         if not expectation:
@@ -177,7 +174,7 @@ class GptChatManager:
 
         # 生成 report
         _, fault_report_completion = self._do_gpt_chat_from_messages(self._fault_report_chat,
-                                                                     get_messages_fault_report(fault,
+                                                                     get_messages_fault_report(fault_play,
                                                                                                expectation))
 
         if not fault_report_completion or len(fault_report_completion.choices) == 0:

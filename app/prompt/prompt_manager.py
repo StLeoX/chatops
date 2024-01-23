@@ -22,7 +22,7 @@ import tiktoken
 
 # 一
 def get_prompt_fault_desc(fault_workflow_json):
-    return pystache.render(prompt_fault_desc_workflow, {'fault_workflow_json': fault_workflow_json})
+    return pystache.render(prompt_fault_desc, {'fault_workflow_json': fault_workflow_json})
 
 
 def get_pre_hot_fault_desc():

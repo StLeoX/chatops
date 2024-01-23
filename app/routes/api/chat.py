@@ -19,13 +19,6 @@ def gpt_ping():
     parameters: []
 
     responses:
-      200:
-        description: GPT 服务可用
-        schema:
-          properties:
-            response:
-              type: boolean
-              description: 表示GPT服务是否可用
       503:
         description: GPT 服务不可用
         schema:
@@ -33,10 +26,21 @@ def gpt_ping():
             error:
               type: string
               description: 错误信息说明服务不可用
+      200:
+        description: GPT 服务可用
+        schema:
+          properties:
+            response:
+              type: boolean
+              description: 表示GPT服务是否可用
 
     """
-    # the_gpt.Ping()
-    return success_response("ping " + str(True))
+
+    succ = app.the_chat_manager.gpt_ping()
+    if not succ:
+        return error_response("GPT 不可用，请检查")
+
+    return success_response("GPT 暂时可用")
 
 
 @chat_bp.route("/gpt_update_key", methods=["POST"])
@@ -53,13 +57,8 @@ def gpt_update_key():
         required: true
 
     responses:
-      200:
-        description: 密钥更新成功
-        schema:
-          properties:
-            response:
-              type: boolean
-              description: 表示密钥是否成功更新
+      400:
+        description: 请求有误
       401:
         description: 密钥错误
         schema:
@@ -67,13 +66,24 @@ def gpt_update_key():
             error:
               type: string
               description: 错误信息说明密钥无效
+      200:
+        description: 密钥更新成功
+        schema:
+          properties:
+            response:
+              type: boolean
+              description: 表示密钥是否成功更新
 
     """
 
     key = request.json["key"]
+    if not key:
+        return error_response("key not in request", 400)
 
-    # TODO: update key
-    
+    succ = app.the_chat_manager.gpt_update_key(key)
+    if not succ:
+        return error_response("更新秘钥失败", 503)
+
     return success_response("echo key " + key)
 
 
@@ -97,7 +107,7 @@ def gpt_stop():
     """
 
     # TODO: stop generation
-    return success_response("stop " + str(True))
+    return error_response("未实现")
 
 
 @chat_bp.route("/gen_fault_desc", methods=["POST"])
@@ -122,6 +132,8 @@ def gen_fault_desc():
               description: 故障配置
 
     responses:
+      400:
+        description: 请求有误
       401:
         description: 未登录
       503:
@@ -140,7 +152,12 @@ def gen_fault_desc():
         return error_response("请先登录", 401)
 
     fault_workflow = request.json["workflowInfo"]
+    if not fault_workflow:
+        return error_response("fault_workflow not in request", 400)
+
     fault_config = request.json["faultConfigInfo"]
+    if not fault_config:
+        return error_response("fault_config not in request", 400)
 
     fid, fault_desc = app.the_chat_manager.gen_fault_desc(fault_workflow, fault_config)
 
@@ -151,7 +168,7 @@ def gen_fault_desc():
     return success_response({"fault_desc": fault_desc})
 
 
-@chat_bp.route("/gen_fault_result", methods=["GET"])
+@chat_bp.route("/gen_fault_result", methods=["POST"])
 def gen_fault_result():
     """
     故障结果，包含以下三个方面：
@@ -161,17 +178,25 @@ def gen_fault_result():
     ---
 
     parameters:
-      - name: fid
-        description: 故障 ID
-        in: query
-        type: integer
+      - name: fault
+        description: 故障结果 JSON
+        in: body
+        type: object
         required: true
+        schema:
+          properties:
+            fid:
+              type: integer
+              description: 故障 ID
+            faultPlayInfo:
+              type: object
+              description: 故障结果
 
     responses:
+      400:
+        description: 请求有误
       401:
         description: 未登录
-      404:
-        description: 故障 ID 不存在
       503:
         description: 生成失败
       200:
@@ -193,13 +218,16 @@ def gen_fault_result():
     if not current_user:
         return error_response("请先登录", 401)
 
-    fid = request.args.get('fid')
-    fault = redis.hget('faults', fid).decode()
-    if not fault:
-        logging.error("fault no found")
-        return error_response("故障不存在", 404)
+    fid = request.json["fid"]
+    if not fid:
+        return error_response("fid not in request", 400)
+    fid = int(fid)
 
-    rid, report, analysis = app.the_chat_manager.gen_fault_result(fid)
+    fault_play = request.json["faultPlayInfo"]
+    if not fault_play:
+        return error_response("fault_play not in request", 400)
+
+    rid, report, analysis = app.the_chat_manager.gen_fault_result(fid, fault_play)
     if not rid:
         logging.warning(f"not gen report {rid}")
         return error_response("生成故障报告失败", 503)
@@ -229,12 +257,18 @@ def gen_expect():
         return error_response("请先登录", 401)
 
     fid = request.json["fid"]
+    if not fid:
+        return error_response("fid not in request", 400)
+    fid = int(fid)
+
     fault = redis.hget('faults', fid).decode()
     if not fault:
         logging.error("fault no found")
         return error_response("故障不存在", 404)
 
     expectation_text = request.json["expect"]
+    if not expectation_text:
+        return error_response("expectation_text not in request", 400)
 
     eid, expectation = app.the_chat_manager.gen_expect(expectation_text)
     if not eid:
