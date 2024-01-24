@@ -9,10 +9,10 @@ class User(UserMixin):
         self.name = name
         self.key = key
         self.redis = app.the_redis
-
+        '''
         if name and key:
             self.save(self.name, self.key)
-
+        '''
     def username_exists(self):
         return self.redis.hexists('users', self.name)
 

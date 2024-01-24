@@ -30,8 +30,13 @@ def login():
     data = request.json
     logging.debug(data)
 
+    name = data.get('name')
+    api_key = data.get('api_key')
+    if name is None:
+        raise ValueError("用户名不能为空")
     try:
-        user = User(data.get('name'), data.get('api_key'))
+        user = User(name, api_key)
+        user.save
     except ValueError as e:
         logging.info(str(e))
         return error_response("用户名已存在", 409)
@@ -39,7 +44,7 @@ def login():
     login_user(user)
 
     # 初始化 chat
-    app.the_chat_manager = GptChatManager()
+    app.the_chat_manager = GptChatManager(api_key=api_key)
     if not app.the_chat_manager.gpt_ping():
         return error_response("GPT 不可用")
 

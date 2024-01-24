@@ -90,7 +90,8 @@ class GptChatManager:
         """
         try:
             gpt_response = chat.completions.create(model=self._model_kind,
-                                                   messages=messages)
+                                                   messages=messages,
+                                                   timeout=60)
         except openai.APITimeoutError as e:
             logging.error(f"[chatops]: {e}")
             return False, None
@@ -187,9 +188,10 @@ class GptChatManager:
         # 生成 analysis
         _, fault_analysis_completion = self._do_gpt_chat(self._fault_report_chat, get_prompt_fault_analysis())
 
-        if not fault_analysis_completion or not fault_report_completion.choices:
+        if not fault_analysis_completion or not fault_analysis_completion.choices:
             return 0, None, None
-        fault_analysis = fault_analysis_completion[0]
+
+        fault_analysis = fault_analysis_completion.choices[0].message.content
 
         return rid, fault_report, fault_analysis
 
