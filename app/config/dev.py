@@ -27,6 +27,7 @@ REDIS_URL = "redis://:@localhost:6379/0"
 
 # GPT
 DEFAULT_MODEL = os.environ.get("DEFAULT_MODEL", "gpt-3.5-turbo-1106")
+DEFAULT_MODEL_TOKEN_CALCULATE = os.environ.get("DEFAULT_MODEL_TOKEN_CALCULATE", "gpt-3.5-turbo-0301")
 
 
 class DevConfig:
