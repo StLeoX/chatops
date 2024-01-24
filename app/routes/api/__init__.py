@@ -41,7 +41,7 @@ def handle_error(error):
 
 @api_bp.before_request
 def before_request():
-    # Attempt to fetch cached response
+    # Attempt to fetch cached response.md
     cached_response = get_cached_response(request)
     if cached_response is not None:
         return cached_response
@@ -52,7 +52,7 @@ def after_request(response: Response):
     if response.headers.get("Is-Cached-Response") == "1":
         # Remove internal cache header
         response.headers.remove("Is-Cached-Response")
-        # Cache the response
+        # Cache the response.md
         set_cached_response(request, response)
     return response
 

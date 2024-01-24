@@ -16,21 +16,21 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.10
+        python-version: "3.10"
 
     - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        pip install pytest-html
 
     - name: Run Tests and Generate HTML Report
       run: |
-        mkdir -p test-reports
-        pytest --html=test-reports/report.html
+        pytest --html=/tmp/chatops_report.html
 
 # 上传了 test-reports 目录，这样可以在 GitHub Actions 的构建页面上下载并查看生成的 HTML 报告
     - name: Upload Test Artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: test-reports
-        path: test-reports
+        name: chatops_report
+        path: /tmp/chatops_report.html

@@ -20,7 +20,26 @@ from app.config.dev import DEFAULT_MODEL
 import tiktoken
 
 
-def get_messages_summary_fault_report(fault_result_json, user_expectation, total_num=1500):
+# 一
+def get_prompt_fault_desc(fault_workflow_json):
+    return pystache.render(prompt_fault_desc, {'fault_workflow_json': fault_workflow_json})
+
+
+def get_pre_hot_fault_desc():
+    return pre_hot_fault_desc
+
+
+# 二
+def get_prompt_expectation(expectation_text):
+    return pystache.render(prompt_expectation, {'expectation_text': expectation_text})
+
+
+def get_pre_hot_expectation():
+    return pre_hot_expectation
+
+
+# 三
+def get_messages_fault_report(fault_result_json, user_expectation, total_num=1500):
     """
     获取功能3（总结错误报告）的messages作为GPT传入参数
 
@@ -31,21 +50,15 @@ def get_messages_summary_fault_report(fault_result_json, user_expectation, total
     Returns:
         用于与GPT沟通的messages参数
     """
-
-    # prompt 填入用户期望
-    data = {
-        'user_expectation': user_expectation,
-        'total_num': total_num,
-    }
-
-    # 渲染模板并打印输出
-    prompt = pystache.render(prompt_fault_report, data)
-
-    # 数据规格化
-    fault_result_json = reform_data(fault_result_json)
-
     # 将 JSON 字符串转换为 Python 字典
-    fault_result_obj = json.loads(fault_result_json)
+    fault_result_str = str(fault_result_json)
+    fault_result_str = fault_result_str.replace("\'", "\"")
+    fault_result_obj_all = json.loads(fault_result_str)
+
+    fault_result_obj = fault_result_obj_all["faultPlayInfo"]
+    # 数据规格化
+    fault_result_obj = reform_data(fault_result_obj)
+
     # 清除多余项
     fault_result_obj = pre_process_item(fault_result_obj)
 
@@ -63,33 +76,42 @@ def get_messages_summary_fault_report(fault_result_json, user_expectation, total
         temp_fault_result_json = json.dumps(temp_fault_result_obj)
 
         messages = [
-            {"role": "system", "content": prompt},
-            {"role": "user", "content": "run"},
             {"role": "assistant", "content": example_fault_report},
             {"role": "user", "content": temp_fault_result_json}
         ]
 
         # messages 的token数量
-        token_num = num_tokens_from_messages(messages)
+        token_num = _num_tokens_from_messages(messages)
 
-        if token_num < 14000:
+        if token_num < 11000:
             high = mid - 1  # 缩小窗口大小
         else:
             low = mid + 1  # 增大窗口大小
 
     # 数据压缩
     pre_process_data_by_window(fault_result_obj, high)
+    fault_result_obj = reform_data(fault_result_obj)
+    fault_result_obj_all["faultPlayInfo"] = fault_result_obj
 
-    fault_result_obj = json.dumps(fault_result_obj)
+    fault_result_info = json.dumps(fault_result_obj_all)
+    data = {
+        'user_expectation': user_expectation,
+        'total_num': total_num,
+        'fault_result_info': fault_result_info,
+        'example': example_fault_report
+    }
+
+    prompt = pystache.render(prompt_fault_report, data)
 
     messages = [
-        {"role": "system", "content": prompt},
-        {"role": "user", "content": "run"},
-        {"role": "assistant", "content": example_fault_report},
-        {"role": "user", "content": fault_result_obj}
+        {"role": "user", "content": prompt}
     ]
 
     return messages
+
+
+def get_prompt_fault_analysis():
+    return example_fault_analysis
 
 
 def get_pre_hot_fault_report():
@@ -99,13 +121,15 @@ def get_pre_hot_fault_report():
     # prompt 填入用户期望
     data = {
         'user_expectation': "",
-        'total_num': 1500
+        'total_num': 1500,
+        'fault_result_info': "",
     }
     # 渲染模板并打印输出
     prompt = pystache.render(prompt_fault_report, data)
     return prompt
 
 
+# 四
 def get_messages_suggestion(fault_desc, user_expectation, fault_report, total_num=1500):
     """
     获取功能4（总结错误报告）的messages作为GPT传入参数
@@ -129,17 +153,9 @@ def get_messages_suggestion(fault_desc, user_expectation, fault_report, total_nu
     # 渲染模板并打印输出
     message = pystache.render(message_suggestion, data_message)
 
-    data_prompt = {
-        "total_num": total_num
-    }
-
-    suggestion = pystache.render(prompt_suggestion, data_prompt)
-
     messages = [
-        {"role": "system", "content": suggestion},
-        {"role": "user", "content": "run"},
         {"role": "assistant", "content": example_suggestion},
-            {"role": "user", "content": message}
+        {"role": "user", "content": message}
     ]
 
     return messages
@@ -157,7 +173,7 @@ def get_pre_hot_suggestion():
     return pystache.render(prompt_suggestion, data_prompt)
 
 
-def num_tokens_from_messages(messages, model=DEFAULT_MODEL):
+def _num_tokens_from_messages(messages, model=DEFAULT_MODEL):
     """
 
     返回Messages使用的token数量.
@@ -176,11 +192,12 @@ def num_tokens_from_messages(messages, model=DEFAULT_MODEL):
         logging.warning("[chatops] model not found. Using cl100k_base encoding.")
         encoding = tiktoken.get_encoding("cl100k_base")
     if model == "gpt-3.5-turbo":
-        logging.warning("[chatops] gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0301.")
-        return num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301")
+        logging.warning(
+            "[chatops] gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0301.")
+        return _num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301")
     elif model == "gpt-4":
         logging.warning("[chatops] gpt-4 may change over time. Returning num tokens assuming gpt-4-0314.")
-        return num_tokens_from_messages(messages, model="gpt-4-0314")
+        return _num_tokens_from_messages(messages, model="gpt-4-0314")
     elif model == "gpt-3.5-turbo-0301":
         tokens_per_message = 4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
         tokens_per_name = -1  # if there's a name, the role is omitted
