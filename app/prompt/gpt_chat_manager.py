@@ -131,7 +131,7 @@ class GptChatManager:
         fault_config:
         """
         _, fault_desc_completion = self._do_gpt_chat(self._fault_desc_chat, get_prompt_fault_desc(fault_workflow))
-        if not fault_desc_completion or len(fault_desc_completion.choices) == 0:
+        if not fault_desc_completion or not fault_desc_completion.choices:
             return 0, None
         fault_desc = fault_desc_completion.choices[0].message.content
 
@@ -154,7 +154,7 @@ class GptChatManager:
         redis.hset('expectations', eid, expectation_text)
 
         _, expectation_completion = self._do_gpt_chat(self._expectation_chat, get_prompt_expectation(expectation_text))
-        if not expectation_completion or len(expectation_completion) == 0:
+        if not expectation_completion or not expectation_completion:
             return 0, None
         expectation = expectation_completion.choices[0].message.content
         return eid, expectation
@@ -176,8 +176,7 @@ class GptChatManager:
         _, fault_report_completion = self._do_gpt_chat_from_messages(self._fault_report_chat,
                                                                      get_messages_fault_report(fault_play,
                                                                                                expectation))
-
-        if not fault_report_completion or len(fault_report_completion.choices) == 0:
+        if not fault_report_completion or not fault_report_completion.choices:
             return 0, None, None
 
         # 将报告写回 redis
@@ -188,7 +187,7 @@ class GptChatManager:
         # 生成 analysis
         _, fault_analysis_completion = self._do_gpt_chat(self._fault_report_chat, get_prompt_fault_analysis())
 
-        if not fault_analysis_completion or len(fault_report_completion.choices) == 0:
+        if not fault_analysis_completion or not fault_report_completion.choices:
             return 0, None, None
         fault_analysis = fault_analysis_completion[0]
 
@@ -216,7 +215,7 @@ class GptChatManager:
         _, advice_completion = self._do_gpt_chat_from_messages(self._fault_report_chat,
                                                                get_messages_suggestion(fault, expectation, report))
 
-        if not advice_completion or len(advice_completion.choices) == 0:
+        if not advice_completion or not advice_completion.choices:
             return 0, None
 
         # 将建议写回 redis

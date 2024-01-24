@@ -223,7 +223,7 @@ def gen_fault_result():
         return error_response("fid not in request", 400)
     fid = int(fid)
 
-    fault_play = request.json["faultPlayInfo"]
+    fault_play = {"faultPlayInfo": request.json["faultPlayInfo"]}
     if not fault_play:
         return error_response("fault_play not in request", 400)
 
