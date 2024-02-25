@@ -29,3 +29,11 @@ ChatOps 是一款面向电网故障注入场景的运维助手，具有以下四
 目前 PR 的审查规则是：两个人代码过审、两个人测试过审。
 
 issue 展示不使用，项目管理全在 pingcode 上。
+
+### 使用
+运行镜像：
+```shell
+docker run -e FLASK_DEBUG="False" BASE_URL="" OPENAI_API_KEY="" image_name
+```
+
+如果用网络代理，添加环境变量 `http_proxy` 和 `https_proxy`。

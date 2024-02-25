@@ -21,7 +21,13 @@ class GptChatManager:
             self._api_key = api_key
         else:
             self._api_key = os.environ.get("OPENAI_API_KEY", "")
-        assert self._api_key
+        if not self._api_key:
+            logging.fatal("`OPENAI_API_KEY` not set")
+
+        self._base_url = os.environ.get("BASE_URL", "")
+        if not self._base_url:
+            logging.fatal("`BASE_URL` not set")
+
         self._model_kind = DEFAULT_MODEL
 
         [getattr(self, method)() for method in dir(self) if
@@ -30,30 +36,30 @@ class GptChatManager:
     def _new_general_chat(self):
         # 预热普通对话
         # 缺省网络连接配置：超时 3s, 重连 2 次
-        self._general_chat = openai.OpenAI(api_key=self._api_key, timeout=3, max_retries=2).chat
+        self._general_chat = openai.OpenAI(api_key=self._api_key, base_url=self._base_url, timeout=3, max_retries=2).chat
 
     def _new_fault_desc_chat(self):
         # 预热对话
         # 网络连接配置：超时 3s, 重连 2 次
-        self._fault_desc_chat = openai.OpenAI(api_key=self._api_key, timeout=3, max_retries=2).chat
+        self._fault_desc_chat = openai.OpenAI(api_key=self._api_key, base_url=self._base_url, timeout=3, max_retries=2).chat
         self._do_gpt_chat(self._fault_desc_chat, get_pre_hot_fault_desc(), 'system')
 
     def _new_expectation_chat(self):
         # 预热对话
         # 网络连接配置：超时 3s, 重连 2 次
-        self._expectation_chat = openai.OpenAI(api_key=self._api_key, timeout=3, max_retries=2).chat
+        self._expectation_chat = openai.OpenAI(api_key=self._api_key, base_url=self._base_url, timeout=3, max_retries=2).chat
         self._do_gpt_chat(self._expectation_chat, get_pre_hot_expectation(), 'system')
 
     def _new_fault_report_chat(self):
         # 预热对话
         # 网络连接配置：超时 3s, 重连 2 次
-        self._fault_report_chat = openai.OpenAI(api_key=self._api_key, timeout=3, max_retries=2).chat
+        self._fault_report_chat = openai.OpenAI(api_key=self._api_key, base_url=self._base_url, timeout=3, max_retries=2).chat
         self._do_gpt_chat(self._fault_report_chat, get_pre_hot_fault_report(), 'system')
 
     def _new_advice_chat(self):
         # 预热对话
         # 网络连接配置：超时 3s, 重连 2 次
-        self._advice_chat = openai.OpenAI(api_key=self._api_key, timeout=3, max_retries=2).chat
+        self._advice_chat = openai.OpenAI(api_key=self._api_key, base_url=self._base_url, timeout=3, max_retries=2).chat
         self._do_gpt_chat(self._advice_chat, get_pre_hot_suggestion(), 'system')
 
     def _do_gpt_chat(self, chat, prompt: str, role: str = "user") -> (bool, ChatCompletion):
