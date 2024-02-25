@@ -1,0 +1,48 @@
+# chatops namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: chatops
+
+# chatops Deployment
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chatops
+  namespace: chatops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chatops
+  template:
+    metadata:
+      labels:
+        app: chatops
+    spec:
+      containers:
+        - name: chatops
+          image: registry.cn-heyuan.aliyuncs.com/obser/chatops:1.0
+          ports:
+            - containerPort: 9999
+          env:
+            - name: REDIS_URL
+              value: "redis://chatops-redis.chatops.svc.cluster.local:6379/0"
+      imagePullSecrets:
+        - name: regcred
+
+# chatops Service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chatops
+  namespace: chatops
+spec:
+  selector:
+    app: chatops
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 9999

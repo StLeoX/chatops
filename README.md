@@ -30,10 +30,21 @@ ChatOps 是一款面向电网故障注入场景的运维助手，具有以下四
 
 issue 展示不使用，项目管理全在 pingcode 上。
 
-### 使用
-运行镜像：
+### 部署
+#### docker 环境
+docker 运行镜像：
 ```shell
-docker run -e FLASK_DEBUG="False" BASE_URL="" OPENAI_API_KEY="" image_name
+docker login
+docker run -e FLASK_DEBUG="False" BASE_URL="" OPENAI_API_KEY="" REDIS_URL="" registry.cn-heyuan.aliyuncs.com/obser/chatops:1.0
 ```
 
 如果用网络代理，添加环境变量 `http_proxy` 和 `https_proxy`。
+
+#### k8s 环境
+
+```shell
+kubectl apply -f chatops.k8s.yml
+```
+需要先创建 docker registry 访问凭证，[参考](https://kubernetes.io/zh-cn/docs/tasks/configure-pod-container/pull-image-private-registry/)
+
+`chatops` 依赖 `redis`，`redis` 可以预先使用 helm 部署，[参考](https://developer.redis.com/redis-aqi/k8s.html)
