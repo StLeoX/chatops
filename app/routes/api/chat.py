@@ -1,7 +1,6 @@
 import logging
 
-from flask import Blueprint, request, abort
-from flask_login import current_user
+from flask import Blueprint, request
 
 import app
 from app.utils.api import success_response, error_response
@@ -148,8 +147,8 @@ def gen_fault_desc():
 
     """
 
-    if not current_user:
-        return error_response("请先登录", 401)
+    if app.the_chat_manager is None:
+        return error_response("请先登录，或通过环境变量初始化 chat", 401)
 
     fault_workflow = request.json["workflowInfo"]
     if not fault_workflow:
@@ -215,8 +214,8 @@ def gen_fault_result():
 
     """
 
-    if not current_user:
-        return error_response("请先登录", 401)
+    if app.the_chat_manager is None:
+        return error_response("请先登录，或通过环境变量初始化 chat", 401)
 
     fid = request.json["fid"]
     if not fid:
@@ -253,8 +252,8 @@ def gen_expect():
     todo
     """
 
-    if not current_user:
-        return error_response("请先登录", 401)
+    if app.the_chat_manager is None:
+        return error_response("请先登录，或通过环境变量初始化 chat", 401)
 
     fid = request.json["fid"]
     if not fid:

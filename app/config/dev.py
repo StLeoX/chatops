@@ -23,7 +23,7 @@ CACHE_EXEMPTED_ROUTES = [
 ]
 
 # Redis
-REDIS_URL = os.environ.get("REDIS_URL", "redis://chatops-redis:6379/0")
+REDIS_URL = os.environ.get("REDIS_URL", "redis://127.0.0.1:6379/0")
 
 # GPT
 DEFAULT_MODEL = os.environ.get("DEFAULT_MODEL", "gpt-3.5-turbo-1106")

@@ -33,7 +33,7 @@ def login():
     name = data.get('name')
     api_key = data.get('api_key')
     if name is None:
-        raise ValueError("用户名不能为空")
+        raise error_response("用户名不能为空", 409)
     try:
         user = User(name, api_key)
         user.save

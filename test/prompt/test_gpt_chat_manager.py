@@ -5,6 +5,7 @@ from app.prompt.gpt_chat_manager import GptChatManager
 
 @pytest.fixture
 def the_chat_manager():
+    # 单测要传入 api_key
     return GptChatManager()
 
 

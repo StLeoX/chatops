@@ -12,7 +12,7 @@ from app import the_redis as redis
 
 
 class GptChatManager:
-    def __init__(self, api_key: str = ""):
+    def __init__(self, api_key: str = "", base_url: str = ""):
         """
         api_key: default in env
         """
@@ -24,7 +24,10 @@ class GptChatManager:
         if not self._api_key:
             logging.fatal("`OPENAI_API_KEY` not set")
 
-        self._base_url = os.environ.get("BASE_URL", "")
+        if base_url:
+            self._base_url = base_url
+        else:
+            self._base_url = os.environ.get("BASE_URL", "")
         if not self._base_url:
             logging.fatal("`BASE_URL` not set")
 
@@ -32,11 +35,15 @@ class GptChatManager:
 
         [getattr(self, method)() for method in dir(self) if
          callable(getattr(self, method)) and re.match(r'_new.*_chat', method)]
+        # self._new_general_chat()
 
     def _new_general_chat(self):
         # 预热普通对话
         # 缺省网络连接配置：超时 3s, 重连 2 次
-        self._general_chat = openai.OpenAI(api_key=self._api_key, base_url=self._base_url, timeout=3, max_retries=2).chat
+        if self._base_url:
+            self._general_chat = openai.OpenAI(api_key=self._api_key, base_url=self._base_url, timeout=3, max_retries=2).chat
+        else:
+            self._general_chat = openai.OpenAI(api_key=self._api_key, timeout=3, max_retries=2).chat
 
     def _new_fault_desc_chat(self):
         # 预热对话
@@ -73,8 +80,9 @@ class GptChatManager:
                 gpt_response = chat.completions.create(model=self._model_kind,
                                                        messages=[{"role": role,
                                                                   "content": prompt}],
-                                                       timeout=60)
-                return gpt_response.id is not None, gpt_response
+                                                       timeout=10)
+                if gpt_response:
+                    return gpt_response.id is not None, gpt_response
             except openai.APITimeoutError as e:
                 logging.error(f"[chatops]: {e}")
                 if i < n_retry - 1:
