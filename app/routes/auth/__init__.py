@@ -48,6 +48,8 @@ def login():
     if not app.the_chat_manager.gpt_ping():
         return error_response("GPT 不可用")
 
+    print("init GPT ok")
+
     return success_response("登录成功")
 
 

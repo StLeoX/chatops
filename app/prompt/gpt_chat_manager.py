@@ -5,6 +5,7 @@ import logging
 import openai
 from openai.types.chat import ChatCompletion
 
+import app
 from app.config.dev import *
 from .prompt_manager import *
 
@@ -33,9 +34,10 @@ class GptChatManager:
 
         self._model_kind = DEFAULT_MODEL
 
-        [getattr(self, method)() for method in dir(self) if
-         callable(getattr(self, method)) and re.match(r'_new.*_chat', method)]
-        # self._new_general_chat()
+        # [getattr(self, method)() for method in dir(self) if
+        #  callable(getattr(self, method)) and re.match(r'_new.*_chat', method)]
+        self._new_general_chat()
+        self._new_fault_desc_chat()
 
     def _new_general_chat(self):
         # 预热普通对话
@@ -151,8 +153,10 @@ class GptChatManager:
         fault_desc = fault_desc_completion.choices[0].message.content
 
         # 将描述写回 redis
-        fid = redis.incr('fid')
-        redis.hset('faults', fid, fault_desc)
+        if not app.the_redis:
+            print("redis not init")
+        fid = app.the_redis.incr('fid')
+        app.the_redis.hset('faults', fid, fault_desc)
 
         return fid, fault_desc
 

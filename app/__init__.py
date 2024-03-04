@@ -49,15 +49,6 @@ def create_app(debug: bool = False):
     limiter.init_app(app)
     login_manager.init_app(app)
 
-    # 初始化 redis 配置
-    global the_redis
-    the_redis = redis.from_url(app.config.get('REDIS_URL'))
-    # 设定初始值
-    the_redis['aid'] = 1
-    the_redis['eid'] = 1
-    the_redis['fid'] = 1
-    the_redis['rid'] = 1
-
     # Import all models and Create database tables
     from app import models
 
