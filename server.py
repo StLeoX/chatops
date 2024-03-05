@@ -7,12 +7,6 @@ import app as app2
 
 app = create_app(debug=True)
 
-# 如果通过环境变量设定 API_KEY，那么直接初始化 the_chat_manager
-api_key = os.environ.get("OPENAI_API_KEY", "")
-if api_key:
-    app2.the_chat_manager = GptChatManager(api_key=api_key)
-    print("init GPT ok")
-
 # 通过环境变量设定 REDIS_URL
 redis_url = os.environ.get("REDIS_URL", "")
 if redis_url:
@@ -25,7 +19,13 @@ if redis_url:
     app2.the_redis['fid'] = 1
     app2.the_redis['rid'] = 1
 
-    print("init redis ok")
+    print("init Redis ok")
+
+# 通过环境变量设定 API_KEY，初始化 the_chat_manager
+api_key = os.environ.get("OPENAI_API_KEY", "")
+if api_key:
+    app2.the_chat_manager = GptChatManager(api_key=api_key)
+    print("init GPT ok")
 
 if __name__ == "__main__":
     app.run()

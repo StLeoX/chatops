@@ -116,19 +116,18 @@ def gen_fault_desc():
     ---
 
     parameters:
-      - name: fault
-        description: 故障 JSON
+      - name: workflowInfo
+        description: 工作流配置
         in: body
         type: object
         required: true
-        schema:
-          properties:
-            workflowInfo:
-              type: object
-              description: 工作流配置
-            faultConfigInfo:
-              type: object
-              description: 故障配置
+        schema: unknown
+      - name: faultConfigInfo
+        description: 故障配置
+        in: body
+        type: object
+        required: true
+        schema: unknown
 
     responses:
       400:
@@ -148,20 +147,20 @@ def gen_fault_desc():
     """
 
     if app.the_chat_manager is None:
-        return error_response("请先登录，或通过环境变量初始化 chat", 401)
+        return error_response("login or ENV to init GPT", 401)
 
     fault_workflow = request.json["workflowInfo"]
     if not fault_workflow:
-        return error_response("fault_workflow not in request", 400)
+        return error_response("workflowInfo not in request body", 400)
 
     fault_config = request.json["faultConfigInfo"]
     if not fault_config:
-        return error_response("fault_config not in request", 400)
+        return error_response("faultConfigInfo not in request body", 400)
 
     fid, fault_desc = app.the_chat_manager.gen_fault_desc(fault_workflow, fault_config)
 
     if not fid:
-        return error_response("生成故障场景描述失败", 503)
+        return error_response("not gen desc", 503)
 
     logging.debug(f"response fault {fid}")
     return success_response({"fault_desc": fault_desc})
@@ -215,27 +214,27 @@ def gen_fault_result():
     """
 
     if app.the_chat_manager is None:
-        return error_response("请先登录，或通过环境变量初始化 chat", 401)
+        return error_response("login or ENV to init GPT", 401)
 
-    fid = request.json["fid"]
+    fid = request.json['fault']["fid"]
     if not fid:
-        return error_response("fid not in request", 400)
+        return error_response("fid not in request body", 400)
     fid = int(fid)
 
-    fault_play = {"faultPlayInfo": request.json["faultPlayInfo"]}
+    fault_play = {"faultPlayInfo": request.json['fault']["faultPlayInfo"]}
     if not fault_play:
-        return error_response("fault_play not in request", 400)
+        return error_response("faultPlayInfo not in request body", 400)
 
     rid, report, analysis = app.the_chat_manager.gen_fault_result(fid, fault_play)
     if not rid:
         logging.warning(f"not gen report {rid}")
-        return error_response("生成故障报告失败", 503)
+        return error_response("not gen report", 503)
     logging.debug(f"response report {rid}")
 
-    aid, advice = app.the_chat_manager.gen_advice(fid)
+    aid, advice = app.the_chat_manager.gen_advice(fid, rid, eid)
     if not aid:
         logging.warning(f"not gen advice {aid}")
-        return error_response("生成运维建议失败", 503)
+        return error_response("not gen advice", 503)
     logging.debug(f"response advice {aid}")
 
     return success_response({"report": report,

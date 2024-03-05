@@ -9,8 +9,6 @@ import app
 from app.config.dev import *
 from .prompt_manager import *
 
-from app import the_redis as redis
-
 
 class GptChatManager:
     def __init__(self, api_key: str = "", base_url: str = ""):
@@ -34,35 +32,37 @@ class GptChatManager:
 
         self._model_kind = DEFAULT_MODEL
 
-        # [getattr(self, method)() for method in dir(self) if
-        #  callable(getattr(self, method)) and re.match(r'_new.*_chat', method)]
-        self._new_general_chat()
-        self._new_fault_desc_chat()
+        [getattr(self, method)() for method in dir(self) if
+         callable(getattr(self, method)) and re.match(r'_new.*_chat', method)]
 
     def _new_general_chat(self):
         # 预热普通对话
         # 缺省网络连接配置：超时 3s, 重连 2 次
         if self._base_url:
-            self._general_chat = openai.OpenAI(api_key=self._api_key, base_url=self._base_url, timeout=3, max_retries=2).chat
+            self._general_chat = openai.OpenAI(api_key=self._api_key, base_url=self._base_url, timeout=3,
+                                               max_retries=2).chat
         else:
             self._general_chat = openai.OpenAI(api_key=self._api_key, timeout=3, max_retries=2).chat
 
     def _new_fault_desc_chat(self):
         # 预热对话
         # 网络连接配置：超时 3s, 重连 2 次
-        self._fault_desc_chat = openai.OpenAI(api_key=self._api_key, base_url=self._base_url, timeout=3, max_retries=2).chat
+        self._fault_desc_chat = openai.OpenAI(api_key=self._api_key, base_url=self._base_url, timeout=3,
+                                              max_retries=2).chat
         self._do_gpt_chat(self._fault_desc_chat, get_pre_hot_fault_desc(), 'system')
 
     def _new_expectation_chat(self):
         # 预热对话
         # 网络连接配置：超时 3s, 重连 2 次
-        self._expectation_chat = openai.OpenAI(api_key=self._api_key, base_url=self._base_url, timeout=3, max_retries=2).chat
+        self._expectation_chat = openai.OpenAI(api_key=self._api_key, base_url=self._base_url, timeout=3,
+                                               max_retries=2).chat
         self._do_gpt_chat(self._expectation_chat, get_pre_hot_expectation(), 'system')
 
     def _new_fault_report_chat(self):
         # 预热对话
         # 网络连接配置：超时 3s, 重连 2 次
-        self._fault_report_chat = openai.OpenAI(api_key=self._api_key, base_url=self._base_url, timeout=3, max_retries=2).chat
+        self._fault_report_chat = openai.OpenAI(api_key=self._api_key, base_url=self._base_url, timeout=3,
+                                                max_retries=2).chat
         self._do_gpt_chat(self._fault_report_chat, get_pre_hot_fault_report(), 'system')
 
     def _new_advice_chat(self):
@@ -76,19 +76,28 @@ class GptChatManager:
         -> bool: valid resp
         -> ChatCompletion: ChatCompletion.Choice.message.content := str
         """
-        n_retry = 3
-        for i in range(n_retry):
+        messages = [{"role": role,
+                     "content": prompt}]
+        return self._do_gpt_chat_from_messages(chat, messages)
+
+    def _do_gpt_chat_from_messages(self, chat, messages) -> (bool, ChatCompletion):
+        """
+        -> bool: valid resp
+        -> ChatCompletion: ChatCompletion.Choice.message.content := str
+        """
+        # 最大重试次数
+        max_retry = 3
+        for i in range(max_retry):
             try:
                 gpt_response = chat.completions.create(model=self._model_kind,
-                                                       messages=[{"role": role,
-                                                                  "content": prompt}],
-                                                       timeout=10)
+                                                       messages=messages,
+                                                       timeout=20)  # 单次补全超时时间
                 if gpt_response:
                     return gpt_response.id is not None, gpt_response
             except openai.APITimeoutError as e:
                 logging.error(f"[chatops]: {e}")
-                if i < n_retry - 1:
-                    # 等待
+                if i < max_retry - 1:
+                    # 阻塞时间
                     time.sleep(5)
                 else:
                     return False, None
@@ -98,27 +107,6 @@ class GptChatManager:
             except openai.APIStatusError as e:
                 logging.error(f"[chatops]: {e}")
                 return False, None
-
-    def _do_gpt_chat_from_messages(self, chat, messages) -> (bool, ChatCompletion):
-        """
-        -> bool: valid resp
-        -> ChatCompletion: ChatCompletion.Choice.message.content := str
-        """
-        try:
-            gpt_response = chat.completions.create(model=self._model_kind,
-                                                   messages=messages,
-                                                   timeout=60)
-        except openai.APITimeoutError as e:
-            logging.error(f"[chatops]: {e}")
-            return False, None
-        except openai.RateLimitError as e:
-            logging.error(f"[chatops]: {e}")
-            return False, None
-        except openai.APIStatusError as e:
-            logging.error(f"[chatops]: {e}")
-            return False, None
-
-        return gpt_response.id is not None, gpt_response
 
     def gpt_update_key(self, api_key: str) -> bool:
         """
@@ -169,8 +157,8 @@ class GptChatManager:
         # expectation_text = pre_handle(expectation_text)
 
         # 将期望写回 redis
-        eid = redis.incr('eid')
-        redis.hset('expectations', eid, expectation_text)
+        eid = app.the_redis.incr('eid')
+        app.the_redis.hset('expectations', eid, expectation_text)
 
         _, expectation_completion = self._do_gpt_chat(self._expectation_chat, get_prompt_expectation(expectation_text))
         if not expectation_completion or not expectation_completion:
@@ -187,9 +175,12 @@ class GptChatManager:
         -> str: problem analysis content
         """
 
-        expectation = redis.hget('expectations', fid).decode()
+        expectation = app.the_redis.hget('expectations', fid)
         if not expectation:
-            logging.error("expectation no found")
+            logging.info("expectation no found")
+            expectation = "空"
+        else:
+            expectation = expectation.decode()
 
         # 生成 report
         _, fault_report_completion = self._do_gpt_chat_from_messages(self._fault_report_chat,
@@ -199,9 +190,9 @@ class GptChatManager:
             return 0, None, None
 
         # 将报告写回 redis
-        rid = redis.incr('rid')
+        rid = app.the_redis.incr('rid')
         fault_report = fault_report_completion.choices[0].message.content
-        redis.hset('reports', rid, fault_report)
+        app.the_redis.hset('reports', rid, fault_report)
 
         # 生成 analysis
         _, fault_analysis_completion = self._do_gpt_chat(self._fault_report_chat, get_prompt_fault_analysis())
@@ -214,21 +205,28 @@ class GptChatManager:
         return rid, fault_report, fault_analysis
 
     # 四
-    def gen_advice(self, fid) -> (int, str):
+    def gen_advice(self, fid, rid, eid) -> (int, str):
         """
         fid: fault id
+        rid: report id
+        eid:
+
         -> int: advice id
         -> str: advice content
         """
-        fault = redis.hget('faults', fid).decode()
+        fault = app.the_redis.hget('faults', fid).decode()
         if not fault:
             logging.error("fault no found")
 
-        expectation = redis.hget('expectations', fid).decode()
-        if not expectation:
-            logging.error("expectation no found")
+        if eid == 0:
+            expectation = "空"
+        else:
+            expectation = app.the_redis.hget('expectations', fid).decode()
+            if not expectation:
+                logging.info("expectation no found")
+                expectation = "空"
 
-        report = redis.hget('reports', fid).decode()
+        report = app.the_redis.hget('reports', rid).decode()
         if not report:
             logging.error("report no found")
 
@@ -239,8 +237,8 @@ class GptChatManager:
             return 0, None
 
         # 将建议写回 redis
-        aid = redis.incr('aid')
+        aid = app.the_redis.incr('aid')
         advice = advice_completion.choices[0].message.content
-        redis.hset('reports', aid, advice)
+        app.the_redis.hset('reports', aid, advice)
 
         return aid, advice

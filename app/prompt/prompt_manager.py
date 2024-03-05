@@ -45,7 +45,7 @@ def get_messages_fault_report(fault_result_json, user_expectation, total_num=150
 
     Parameters:
         fault_result_json : 传入的Json格式错误报告
-        user_expectation ： 传入用户期望
+        user_expectation : 传入用户期望
         total_num : 控制GPT输出字符数量，默认1500
     Returns:
         用于与GPT沟通的messages参数
